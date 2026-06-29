@@ -11,18 +11,8 @@
 <a href="#license">License</a>
 </p>
 <p align="center">
-<img src="screenshots/preview.jpeg" alt="Aurelis Preview" width="100%" />
+<img src="public/preview.jpeg" alt="Aurelis Preview" width="100%" />
 </p>
-
----
-
-## Screenshots
-
-| Home | Shop | Product |
-| --- | --- | --- |
-| <img src="screenshots/preview.jpeg" alt="Home" width="100%" /> | <img src="screenshots/shop.jpeg" alt="Shop" width="100%" /> | <img src="screenshots/product.jpeg" alt="Product" width="100%" /> |
-
-> Full homepage: [`screenshots/home-full.jpeg`](screenshots/home-full.jpeg)
 
 ---
 
