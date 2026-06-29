@@ -1,0 +1,434 @@
+---
+import type { Product } from '~/lib/shopify/types';
+import { formatMoney } from '~/lib/utils';
+
+interface Props {
+  product?: Product | null;
+}
+
+const { product } = Astro.props;
+
+// Color name → hex for swatches
+const COLOR_HEX: Record<string, string> = {
+  black: '#1a1d24', white: '#f8f6f1', silver: '#c0c0c0', gold: '#c9a86a',
+  blue: '#2c4a7c', navy: '#1a2a4a', red: '#c0392b', green: '#3d6b4f',
+  pink: '#e8a0a0', purple: '#6b3d6b', yellow: '#d4b84a', orange: '#d4874a',
+  grey: '#888888', gray: '#888888', 'space gray': '#57595d', 'space grey': '#57595d',
+  'rose gold': '#b76e79', graphite: '#383838', titanium: '#8a8a8a',
+  midnight: '#1a1d24', starlight: '#f2ede3', 'space black': '#1a1d24',
+  'sky blue': '#6ab0d4', 'deep purple': '#4a1a6b', bronze: '#9c6b3d',
+  coral: '#e8735a', teal: '#2a7c7c',
+};
+const nameToHex = (name: string) => {
+  const lower = name.toLowerCase().trim();
+  return lower.startsWith('#') ? name : (COLOR_HEX[lower] ?? '#888888');
+};
+
+// Images
+const rawImages = product
+  ? (product.images.length > 0 ? product.images : product.featuredImage ? [product.featuredImage] : [])
+  : [];
+const mainImgUrl = rawImages[0]?.url ?? '/images/smartphone.jpg';
+const thumbImages = rawImages.slice(0, 4);
+const staticThumbs = ['/images/smartphone.jpg', '/images/gallery-1.jpg', '/images/gallery-2.jpg', '/images/gallery-3.jpg'];
+
+// Price
+const price = product?.priceRange.minVariantPrice;
+const compareAt = product?.compareAtPriceRange?.minVariantPrice ?? null;
+const onSale = price && compareAt && Number(compareAt.amount) > Number(price.amount);
+const savings = onSale && price && compareAt
+  ? Math.round(Number(compareAt.amount) - Number(price.amount))
+  : null;
+const payInFour = price ? Math.ceil(Number(price.amount) / 4) : null;
+
+// Options
+const colorOption = product?.options.find(
+  (o) => o.name.toLowerCase() === 'color' || o.name.toLowerCase() === 'colour',
+);
+const otherOptions = product?.options.filter(
+  (o) => o.name.toLowerCase() !== 'color' && o.name.toLowerCase() !== 'colour',
+) ?? [];
+
+// PDP link
+const pdpUrl = product ? `/products/${product.handle}` : '/products';
+// First addable variant (prefer one that's in stock) for the Add to Cart button.
+const firstVariantId =
+  product?.variants?.find((v) => v.availableForSale)?.id ?? product?.variants?.[0]?.id ?? null;
+// Slim variant data so the client can resolve the variant from the selected
+// options (plan / color / etc.) before adding to cart.
+const variantData = (product?.variants ?? []).map((v) => ({
+  id: v.id,
+  availableForSale: v.availableForSale,
+  selectedOptions: v.selectedOptions,
+  price: v.price,
+  compareAtPrice: v.compareAtPrice ?? null,
+}));
+const title = product?.title ?? 'AuraPhone Pro Max';
+const description = product?.description
+  ?? 'The most refined smartphone we\'ve ever curated. Titanium frame, 200MP AI camera system, 6.7″ ProMotion OLED — engineered without compromise.';
+const inStock = product?.availableForSale ?? true;
+
+// Rating helpers
+const rating = product?.rating ?? null;
+const ratingFillPct = rating ? `${((rating.value / 5) * 100).toFixed(1)}%` : null;
+const ratingCountFmt = rating
+  ? (rating.count >= 1000 ? `${(rating.count / 1000).toFixed(1)}K` : String(rating.count))
+  : '2,847';
+---
+
+<section class="section-spotlight" aria-labelledby="spotlight-heading" data-sp-variants={JSON.stringify(variantData)}>
+  <div class="container">
+    <div class="spotlight-layout">
+
+      <!-- Gallery column -->
+      <div class="spotlight-img-col">
+        <div class="spotlight-main-img">
+          <img id="sp-main-img" src={mainImgUrl} alt={title} />
+        </div>
+        <div class="spotlight-thumbnails">
+          {(thumbImages.length > 0 ? thumbImages : staticThumbs.map((url) => ({ url, altText: '' }))).map((t, i) => (
+            <button
+              class={`sp-thumb${i === 0 ? ' active' : ''}`}
+              data-sp-thumb
+              data-img={typeof t === 'string' ? t : t.url}
+              aria-label={`View image ${i + 1}`}
+            >
+              <img src={typeof t === 'string' ? t : t.url} alt={typeof t === 'string' ? '' : (t.altText ?? '')} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Info column -->
+      <div class="spotlight-info">
+        <div class="sp-brand"><span class="sp-brand-dot"></span> Product Spotlight</div>
+        <h2 class="sp-product-title" id="spotlight-heading" set:html={title.replace(/\s+(?=\S*$)/, '<br />')} />
+        <div class="sp-rating-row">
+          {ratingFillPct ? (
+            <span class="rating-stars" aria-label={`${rating!.value} out of 5 stars`}>
+              <span class="rating-fill" style={`width:${ratingFillPct}`}>★★★★★</span>
+              ★★★★★
+            </span>
+          ) : (
+            <span class="sp-stars">★★★★★</span>
+          )}
+          <span class="sp-rating-count">
+            {rating ? `${rating.value.toFixed(1)} (${ratingCountFmt} reviews)` : '4.9 (2,847 reviews)'}
+          </span>
+          <span class="sp-divider">|</span>
+          <span class="sp-in-stock">
+            <span class="sp-stock-dot" style={inStock ? '' : 'background:var(--taupe);'}></span>
+            {inStock ? 'In Stock' : 'Out of Stock'}
+          </span>
+        </div>
+
+        <div class="sp-price-block">
+          {price
+            ? <span class="sp-price-now">{formatMoney(price.amount, price.currencyCode)}</span>
+            : <span class="sp-price-now">$1,199</span>
+          }
+          {onSale && compareAt && (
+            <span class="sp-price-was">{formatMoney(compareAt.amount, compareAt.currencyCode)}</span>
+          )}
+          {savings !== null && (
+            <span class="sp-save-badge">Save ${savings}</span>
+          )}
+        </div>
+
+        <p class="sp-desc">
+          {description.length > 200 ? description.slice(0, 200) + '…' : description}
+        </p>
+
+        <!-- Non-color options (e.g. Storage, RAM) -->
+        {otherOptions.map((opt) => (
+          <div class="sp-option-group" data-sp-option-name={opt.name}>
+            <span class="sp-option-label">{opt.name}</span>
+            <div class="sp-storage-tabs">
+              {opt.optionValues.map((v, i) => (
+                <button class={`sp-tab${i === 0 ? ' active' : ''}`} data-sp-tab data-value={v.name}>{v.name}</button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <!-- Fallback storage tabs when no product or no non-color options -->
+        {!product && (
+          <div class="sp-option-group">
+            <span class="sp-option-label">Storage</span>
+            <div class="sp-storage-tabs">
+              {['128 GB', '256 GB', '512 GB', '1 TB'].map((s, i) => (
+                <button class={`sp-tab${i === 1 ? ' active' : ''}`} data-sp-tab>{s}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Color swatches -->
+        {colorOption && colorOption.optionValues.length > 0 ? (
+          <div class="sp-option-group" data-sp-option-name={colorOption.name}>
+            <span class="sp-option-label">
+              Color — <strong id="sp-color-name">{colorOption.optionValues[0]?.name ?? ''}</strong>
+            </span>
+            <div class="sp-swatches-row">
+              {colorOption.optionValues.map((v, i) => (
+                <button
+                  class={`sp-color-btn${i === 0 ? ' active' : ''}`}
+                  data-sp-color
+                  data-name={v.name}
+                  aria-label={v.name}
+                >
+                  <span class="sp-color-dot" style={`background:${v.swatch?.color ?? nameToHex(v.name)};`}></span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : !product ? (
+          <div class="sp-option-group">
+            <span class="sp-option-label">Color — <strong id="sp-color-name">Space Black</strong></span>
+            <div class="sp-swatches-row">
+              {[['Space Black', '#1A1D24'], ['Platinum Silver', '#C0C0C0'], ['Champagne Gold', '#C9A86A'], ['Ocean Blue', '#2C4A7C']].map(([name, hex], i) => (
+                <button class={`sp-color-btn${i === 0 ? ' active' : ''}`} data-sp-color data-name={name} aria-label={name}>
+                  <span class="sp-color-dot" style={`background:${hex};`}></span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <!-- Add to cart row -->
+        <div class="sp-add-row">
+          <div class="sp-qty">
+            <button class="sp-qty-btn" data-sp-qty="-1" aria-label="Decrease">−</button>
+            <span class="sp-qty-val" id="sp-qty">1</span>
+            <button class="sp-qty-btn" data-sp-qty="1" aria-label="Increase">+</button>
+          </div>
+          {firstVariantId ? (
+            <button class="sp-cart-btn" type="button" data-sp-add data-variant-id={firstVariantId}>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Add to Cart
+            </button>
+          ) : (
+            <a class="sp-cart-btn" href={pdpUrl}>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Add to Cart
+            </a>
+          )}
+          {product ? (
+            <button class="sp-wish-btn" type="button" data-sp-wish data-handle={product.handle} data-title={title} data-image={mainImgUrl} aria-label="Add to wishlist" aria-pressed="false">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          ) : (
+            <a class="sp-wish-btn" href={pdpUrl} aria-label="View product">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </a>
+          )}
+        </div>
+
+        <!-- Trust row -->
+        <div class="sp-trust-row">
+          <div class="sp-trust-item">
+            <svg width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>Free 2-Day Delivery</span>
+          </div>
+          <div class="sp-trust-item">
+            <svg width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+            <span>2-Year Warranty</span>
+          </div>
+          <div class="sp-trust-item">
+            <svg width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            <span>30-Day Returns</span>
+          </div>
+          <div class="sp-trust-item">
+            <svg width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+            <span>{payInFour ? `Pay in 4 × $${payInFour}` : 'Pay in 4 × $299'}</span>
+          </div>
+        </div>
+
+        <!-- Accordion -->
+        <div class="sp-accordion">
+          <div class="sp-acc-item">
+            <button class="sp-acc-trigger" data-sp-acc aria-expanded="true">
+              <span>Key Specifications</span>
+              <svg class="sp-acc-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="sp-acc-body">
+              <div class="sp-acc-body-inner">
+                <table class="sp-acc-table">
+                  <tr><td>Display</td><td>6.7″ Super OLED — 120Hz ProMotion</td></tr>
+                  <tr><td>Processor</td><td>Apex X3 Pro — 3nm Architecture</td></tr>
+                  <tr><td>Camera</td><td>200MP AI Quad System — f/1.7</td></tr>
+                  <tr><td>Battery</td><td>5000mAh — 48hr Life, 65W Fast Charge</td></tr>
+                  <tr><td>Build</td><td>Aerospace Titanium Frame — IP68</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="sp-acc-item">
+            <button class="sp-acc-trigger" data-sp-acc aria-expanded="false">
+              <span>What's in the Box</span>
+              <svg class="sp-acc-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div class="sp-acc-body">
+              <div class="sp-acc-body-inner">
+                <table class="sp-acc-table">
+                  <tr><td>Device</td><td>{title}</td></tr>
+                  <tr><td>Cable</td><td>USB-C 100W Braided — 2m</td></tr>
+                  <tr><td>Case</td><td>Premium Clear Protective Case</td></tr>
+                  <tr><td>Adapter</td><td>65W GaN Fast Charger</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { toggleWish, isWished, initWishlist, openWish, $wishlist } from '~/stores/wishlist';
+
+  const sp = document.querySelector('.section-spotlight');
+  if (sp) {
+    const mainImg = sp.querySelector('#sp-main-img') as HTMLImageElement | null;
+    sp.querySelectorAll('[data-sp-thumb]').forEach((t) => t.addEventListener('click', () => {
+      sp.querySelectorAll('[data-sp-thumb]').forEach((x) => x.classList.remove('active'));
+      t.classList.add('active');
+      if (mainImg) mainImg.src = (t as HTMLElement).dataset.img || mainImg.src;
+    }));
+    // ── Variant resolution + live price ──────────────────────
+    type SpMoney = { amount: string; currencyCode: string };
+    type SpVariant = {
+      id: string;
+      availableForSale: boolean;
+      selectedOptions: { name: string; value: string }[];
+      price?: SpMoney | null;
+      compareAtPrice?: SpMoney | null;
+    };
+    const variants = JSON.parse(sp.getAttribute('data-sp-variants') || '[]') as SpVariant[];
+    const selectedOptions = (): Record<string, string> => {
+      const sel: Record<string, string> = {};
+      sp.querySelectorAll('[data-sp-option-name]').forEach((group) => {
+        const name = group.getAttribute('data-sp-option-name');
+        const active = group.querySelector('.sp-tab.active, .sp-color-btn.active') as HTMLElement | null;
+        const value = active?.dataset.value || active?.dataset.name;
+        if (name && value) sel[name] = value;
+      });
+      return sel;
+    };
+    const resolveVariant = (): SpVariant | null => {
+      const sel = selectedOptions();
+      const keys = Object.keys(sel);
+      return variants.find((v) =>
+        keys.every((k) => (v.selectedOptions || []).some((o) => o.name === k && o.value === sel[k])),
+      ) ?? null;
+    };
+    const resolveVariantId = (fallback?: string | null): string | null =>
+      resolveVariant()?.id || fallback || null;
+
+    const fmtMoney = (amount?: string, currency?: string): string => {
+      const n = Number(amount);
+      if (!Number.isFinite(n)) return '—';
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency || 'USD',
+        minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+      }).format(n);
+    };
+    const priceNowEl = sp.querySelector('.sp-price-now');
+    const priceWasEl = sp.querySelector('.sp-price-was') as HTMLElement | null;
+    const saveBadgeEl = sp.querySelector('.sp-save-badge') as HTMLElement | null;
+    const updatePrice = () => {
+      const v = resolveVariant();
+      if (!v?.price || !priceNowEl) return;
+      priceNowEl.textContent = fmtMoney(v.price.amount, v.price.currencyCode);
+      const cmp = v.compareAtPrice;
+      const onSale = !!cmp && Number(cmp.amount) > Number(v.price.amount);
+      if (priceWasEl) {
+        priceWasEl.textContent = onSale ? fmtMoney(cmp!.amount, cmp!.currencyCode) : '';
+        priceWasEl.style.display = onSale ? '' : 'none';
+      }
+      if (saveBadgeEl) {
+        const save = onSale ? Math.round(Number(cmp!.amount) - Number(v.price.amount)) : 0;
+        saveBadgeEl.textContent = onSale ? `Save $${save}` : '';
+        saveBadgeEl.style.display = onSale ? '' : 'none';
+      }
+    };
+
+    // Toggle active state within each option group; refresh the price.
+    sp.querySelectorAll('[data-sp-tab]').forEach((t) => t.addEventListener('click', () => {
+      const group = t.closest('.sp-option-group');
+      group?.querySelectorAll('[data-sp-tab]').forEach((x) => x.classList.remove('active'));
+      t.classList.add('active');
+      updatePrice();
+    }));
+    const nameEl = sp.querySelector('#sp-color-name');
+    sp.querySelectorAll('[data-sp-color]').forEach((c) => c.addEventListener('click', () => {
+      sp.querySelectorAll('[data-sp-color]').forEach((x) => x.classList.remove('active'));
+      c.classList.add('active');
+      if (nameEl) nameEl.textContent = (c as HTMLElement).dataset.name || '';
+      updatePrice();
+    }));
+
+    // Sync the price to the default-selected variant on load.
+    updatePrice();
+    const qtyEl = sp.querySelector('#sp-qty');
+    sp.querySelectorAll('[data-sp-qty]').forEach((b) => b.addEventListener('click', () => {
+      if (!qtyEl) return;
+      const d = Number((b as HTMLElement).dataset.spQty);
+      qtyEl.textContent = String(Math.max(1, (Number(qtyEl.textContent) || 1) + d));
+    }));
+
+    // Add to Cart → quick-add the SELECTED variant (respecting qty) + open drawer.
+    const addBtn = sp.querySelector('[data-sp-add]') as HTMLElement | null;
+    addBtn?.addEventListener('click', () => {
+      const variantId = resolveVariantId(addBtn.dataset.variantId);
+      if (!variantId) return;
+      const quantity = Math.max(1, Number(qtyEl?.textContent) || 1);
+      window.dispatchEvent(new CustomEvent('atc:quick', { detail: { variantId, quantity } }));
+    });
+
+    // Wishlist → toggle the selected product in the wishlist store.
+    const wishBtn = sp.querySelector('[data-sp-wish]') as HTMLElement | null;
+    if (wishBtn) {
+      const handle = wishBtn.dataset.handle || '';
+      const syncWish = () => {
+        const on = isWished(handle);
+        wishBtn.classList.toggle('is-wished', on);
+        wishBtn.querySelector('svg')?.setAttribute('fill', on ? 'currentColor' : 'none');
+        wishBtn.setAttribute('aria-pressed', String(on));
+        wishBtn.setAttribute('aria-label', on ? 'Remove from wishlist' : 'Add to wishlist');
+      };
+      wishBtn.addEventListener('click', () => {
+        const nowWished = toggleWish({
+          handle,
+          title: wishBtn.dataset.title || '',
+          price: priceNowEl?.textContent?.trim() || '',
+          image: wishBtn.dataset.image || null,
+          variantId: resolveVariantId(addBtn?.dataset.variantId),
+        });
+        syncWish();
+        if (nowWished) openWish();
+      });
+      initWishlist();
+      $wishlist.subscribe(syncWish);
+    }
+    const setBody = (trigger: Element, open: boolean) => {
+      const body = trigger.nextElementSibling as HTMLElement | null;
+      if (body) body.style.maxHeight = open ? `${body.scrollHeight}px` : '0px';
+      trigger.setAttribute('aria-expanded', String(open));
+    };
+    sp.querySelectorAll('[data-sp-acc]').forEach((b) => {
+      if (b.getAttribute('aria-expanded') === 'true') setBody(b, true);
+      b.addEventListener('click', () => setBody(b, b.getAttribute('aria-expanded') !== 'true'));
+    });
+  }
+</script>

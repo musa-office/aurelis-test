@@ -1,0 +1,38 @@
+---
+// ============================================================
+//  Cart page — live cart (CartPage island) + static hero.
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import CartPage from '~/components/react/CartPage.tsx';
+import '~/styles/pages/cart.css';
+---
+
+<BaseLayout title="Shopping Cart" description="Review your cart and checkout securely.">
+  <section class="page-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="crumb-sep">/</span>
+        <a href="/products">Shop</a>
+        <span class="crumb-sep">/</span>
+        <span class="current">Shopping Cart</span>
+      </nav>
+      <div class="cart-hero-row">
+        <div class="cart-hero-l">
+          <h1>Your Shopping Cart</h1>
+          <p>Review your curated selection. Adjust quantities and proceed to a secure checkout — your luxury awaits.</p>
+        </div>
+        <div class="cart-hero-r">
+          <a href="/products" class="continue-shop-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Continue Shopping
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CartPage client:load />
+</BaseLayout>

@@ -1,0 +1,121 @@
+---
+// Sticky site header — logo, primary nav, interactive actions
+// (search / wishlist / cart island), and a mobile slide-in menu.
+import { SITE, NAV, ANN_BAR } from '~/config/site';
+import HeaderActions from '~/components/react/HeaderActions.tsx';
+import { isCustomerAuthConfigured, isLoggedIn } from '~/lib/shopify/customer';
+import { getCurrencyForCountry, getAvailableCurrencies } from '~/lib/shopify';
+
+const path = Astro.url.pathname;
+
+// Auth state for the mobile drawer (the desktop announcement bar is hidden on
+// mobile, so the drawer carries the Sign In / account links).
+const loggedIn = isCustomerAuthConfigured && isLoggedIn(Astro.cookies);
+const authLink = loggedIn
+  ? { label: 'Log out', href: '/account/logout' }
+  : { label: 'Sign In', href: '/account/login' };
+
+// Currency switcher for the mobile drawer — mirrors the announcement bar.
+const { code: curCode } = await getCurrencyForCountry(Astro.locals.country);
+const currencies = await getAvailableCurrencies();
+---
+
+<header class="header">
+  <div class="container">
+    <div class="header-inner">
+      <button class="nav-toggle" type="button" data-nav-toggle aria-label="Open menu" aria-expanded="false">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <a href="/" class="logo">{SITE.name}<span class="dot">{SITE.brandDot}</span></a>
+
+      <nav aria-label="Primary navigation">
+        <ul class="nav-list">
+          {NAV.map((item) => (
+            <li>
+              <a href={item.url} class={path === item.url ? 'active' : undefined} style={item.accent ? 'color:var(--gold);' : undefined}>
+                {item.title}
+                {item.badge && <span class="nav-badge">{item.badge}</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <HeaderActions client:load />
+    </div>
+  </div>
+</header>
+
+{/* Mobile slide-in menu */}
+<div class="mnav-backdrop" data-nav-close></div>
+<aside class="mnav" aria-label="Mobile navigation">
+  <div class="mnav-head">
+    <a href="/" class="logo">{SITE.name}<span class="dot">{SITE.brandDot}</span></a>
+    <button class="mnav-close" type="button" data-nav-close aria-label="Close menu">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  <ul class="mnav-list">
+    {NAV.map((item) => (
+      <li>
+        <a href={item.url} style={item.accent ? 'color:var(--gold);' : undefined}>
+          {item.title}
+          {item.badge && <span class="nav-badge">{item.badge}</span>}
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <div class="mnav-foot">
+    {currencies.length > 0 && (
+      <div class="mnav-currency">
+        <span class="mnav-currency-label">Currency</span>
+        <div class="mnav-currency-chips">
+          {currencies.map((c) => (
+            <button type="button" class={`mnav-cur-chip${c.code === curCode ? ' is-active' : ''}`} data-country={c.country} aria-pressed={c.code === curCode}>
+              {c.code} {c.symbol}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+    <a href={authLink.href} class="mnav-auth">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      {authLink.label}
+    </a>
+    <div class="mnav-sublinks">
+      {ANN_BAR.left.map((l) => (
+        <a href={l.href} class="mnav-sublink">{l.label}</a>
+      ))}
+    </div>
+  </div>
+</aside>
+
+<script>
+  const open = () => { document.body.classList.add('mnav-open'); };
+  const close = () => { document.body.classList.remove('mnav-open'); };
+  document.querySelectorAll('[data-nav-toggle]').forEach((b) => b.addEventListener('click', open));
+  document.querySelectorAll('[data-nav-close]').forEach((b) => b.addEventListener('click', close));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  // Currency chips — pin the chosen currency's country in a cookie that the
+  // middleware reads to localize prices/cart on the next request.
+  document.querySelectorAll<HTMLElement>('.mnav-cur-chip[data-country]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const cc = chip.dataset.country;
+      if (!cc) return;
+      document.cookie = `omnix_country=${cc}; path=/; max-age=31536000; samesite=lax`;
+      location.reload();
+    });
+  });
+</script>

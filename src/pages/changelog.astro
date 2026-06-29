@@ -1,0 +1,196 @@
+---
+// Changelog — release history for the Aurelis storefront.
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+interface Change { kind: 'new' | 'improved' | 'fixed'; text: string; }
+interface Release { version: string; date: string; title: string; changes: Change[]; }
+
+const releases: Release[] = [
+  {
+    version: '2.4.0',
+    date: 'June 2026',
+    title: 'The Edit — editorial blog',
+    changes: [
+      { kind: 'new', text: 'Launched The Edit, a full editorial blog with featured articles, category badges, and reading-time estimates.' },
+      { kind: 'new', text: 'Added article detail pages with a sticky author sidebar and related-reading grid.' },
+      { kind: 'improved', text: 'Refined the home page journal section to pull live articles with a graceful static fallback.' },
+    ],
+  },
+  {
+    version: '2.3.0',
+    date: 'May 2026',
+    title: 'Customer accounts & wishlist',
+    changes: [
+      { kind: 'new', text: 'Introduced Customer Account login via Shopify OAuth 2.0 + PKCE.' },
+      { kind: 'new', text: 'Added a persistent wishlist drawer synced across the header and product cards.' },
+      { kind: 'improved', text: 'Recently-viewed products now persist locally and render on every product page.' },
+    ],
+  },
+  {
+    version: '2.2.0',
+    date: 'April 2026',
+    title: 'Search & discovery',
+    changes: [
+      { kind: 'new', text: 'Added a full-screen search overlay with instant, server-side product results.' },
+      { kind: 'improved', text: 'Collection pages now support bidirectional cursor pagination.' },
+      { kind: 'fixed', text: 'Resolved a layout shift on the product gallery during image load.' },
+    ],
+  },
+  {
+    version: '2.1.0',
+    date: 'March 2026',
+    title: 'Cart & checkout polish',
+    changes: [
+      { kind: 'improved', text: 'Self-healing cart logic silently recovers from expired cart sessions.' },
+      { kind: 'improved', text: 'Quick-add to cart from product cards and the quick-view modal.' },
+      { kind: 'fixed', text: 'Corrected currency formatting for non-USD storefronts.' },
+    ],
+  },
+  {
+    version: '2.0.0',
+    date: 'February 2026',
+    title: 'Aurelis Luxury — initial release',
+    changes: [
+      { kind: 'new', text: 'Complete luxury re-skin built on Astro SSR with React islands.' },
+      { kind: 'new', text: 'Server-side Shopify Storefront integration — the private token never reaches the browser.' },
+      { kind: 'new', text: 'Responsive home, shop, product, cart, about, and contact pages.' },
+    ],
+  },
+];
+
+const labels: Record<Change['kind'], string> = { new: 'New', improved: 'Improved', fixed: 'Fixed' };
+---
+
+<BaseLayout title="Changelog" description="Release history and product updates for the Aurelis storefront.">
+  <section class="doc-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="crumb-sep">/</span>
+        <span class="current">Changelog</span>
+      </nav>
+      <span class="eyebrow">
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-text">What's new</span>
+      </span>
+      <h1 class="doc-title">Changelog</h1>
+      <p class="doc-sub">Every release, refinement, and fix that shapes the Aurelis experience — newest first.</p>
+    </div>
+  </section>
+
+  <section class="doc-body">
+    <div class="container doc-narrow">
+      <ol class="cl-list">
+        {releases.map((r) => (
+          <li class="cl-item">
+            <div class="cl-meta">
+              <span class="cl-version">v{r.version}</span>
+              <span class="cl-date">{r.date}</span>
+            </div>
+            <div class="cl-content">
+              <h2 class="cl-title">{r.title}</h2>
+              <ul class="cl-changes">
+                {r.changes.map((c) => (
+                  <li class="cl-change">
+                    <span class={`cl-tag is-${c.kind}`}>{labels[c.kind]}</span>
+                    <span class="cl-text">{c.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .doc-hero {
+    background: var(--obsidian);
+    color: var(--white);
+    padding: 40px 0 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 80% -10%, rgba(201,168,106,0.15) 0%, transparent 55%);
+  }
+  .doc-hero .container { position: relative; z-index: 1; }
+  .breadcrumb { display: flex; align-items: center; gap: 10px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; margin: 14px 0 38px; }
+  .breadcrumb a { color: rgba(255,255,255,0.5); transition: color var(--t-fast) ease; }
+  .breadcrumb a:hover { color: var(--white); }
+  .breadcrumb .crumb-sep { color: var(--gold-dim); }
+  .breadcrumb .current { color: rgba(255,255,255,0.85); }
+  .doc-hero .eyebrow { margin-bottom: 18px; }
+  .doc-title {
+    font-family: var(--font-heading);
+    font-size: clamp(40px, 5.5vw, 68px);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
+  }
+  .doc-sub { font-size: 17px; color: rgba(255,255,255,0.5); line-height: 1.7; max-width: 560px; }
+
+  /* Body */
+  .doc-body { padding: 80px 0 110px; }
+  .doc-narrow { max-width: 860px; }
+
+  .cl-list { display: flex; flex-direction: column; gap: 8px; }
+  .cl-item {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 32px;
+    padding: 36px 0;
+    border-top: 1px solid var(--line);
+  }
+  .cl-item:first-child { border-top: none; padding-top: 8px; }
+
+  .cl-meta { display: flex; flex-direction: column; gap: 6px; }
+  .cl-version {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--carbon);
+    letter-spacing: -0.01em;
+  }
+  .cl-date { font-size: 13px; color: var(--taupe); }
+
+  .cl-title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--carbon);
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .cl-changes { display: flex; flex-direction: column; gap: 14px; }
+  .cl-change { display: flex; align-items: flex-start; gap: 14px; }
+  .cl-tag {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 11px;
+    border-radius: var(--r-pill);
+    margin-top: 2px;
+    min-width: 76px;
+    text-align: center;
+  }
+  .cl-tag.is-new { background: var(--gold); color: var(--obsidian); }
+  .cl-tag.is-improved { background: rgba(201,168,106,0.14); color: var(--gold-hover); border: 1px solid var(--gold-dim); }
+  .cl-tag.is-fixed { background: var(--soft-bg); color: var(--taupe); border: 1px solid var(--line); }
+  .cl-text { font-size: 15px; color: #3a3632; line-height: 1.65; }
+
+  @media (max-width: 720px) {
+    .cl-item { grid-template-columns: 1fr; gap: 14px; }
+    .cl-meta { flex-direction: row; align-items: baseline; gap: 12px; }
+  }
+</style>

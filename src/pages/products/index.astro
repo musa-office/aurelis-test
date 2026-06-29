@@ -1,0 +1,92 @@
+---
+// ============================================================
+//  All products — PLP with sort + cursor pagination.
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ProductListing from '~/components/product/ProductListing.astro';
+import { searchProducts, SEARCH_SORT_OPTIONS, resolveSort } from '~/lib/shopify';
+import { paginationUrls } from '~/lib/pagination';
+import type { CollectionFilter, ProductCard } from '~/lib/shopify/types';
+import '~/styles/product-card.css';
+import '~/styles/pages/shop.css';
+
+// The all-products PLP is backed by the Storefront `search` query with an
+// empty query string: unlike the top-level `products` query, search returns
+// faceted filters and accepts ProductFilter input, so the page gets the same
+// filter sidebar as collection pages. (Sort is limited to RELEVANCE + PRICE,
+// the only SearchSortKeys.)
+const url = Astro.url;
+const sortValue = url.searchParams.get('sort') ?? SEARCH_SORT_OPTIONS[0].value;
+const sort = resolveSort(SEARCH_SORT_OPTIONS, sortValue);
+const after = url.searchParams.get('after');
+const before = url.searchParams.get('before');
+
+// Each `filter` param is a canonical JSON ProductFilter input from Shopify.
+const selectedFilters = url.searchParams.getAll('filter');
+const parsedFilters = selectedFilters
+  .map((f) => {
+    try {
+      return JSON.parse(f);
+    } catch {
+      return null;
+    }
+  })
+  .filter((f) => f !== null);
+
+let products: ProductCard[] = [];
+let filters: CollectionFilter[] = [];
+let prevUrl: string | null = null;
+let nextUrl: string | null = null;
+let loadError = false;
+
+try {
+  const page = await searchProducts({
+    query: '',
+    pageSize: 12,
+    after,
+    before,
+    sortKey: sort.sortKey,
+    reverse: sort.reverse,
+    filters: parsedFilters,
+  });
+  products = page.items;
+  filters = page.filters;
+  ({ prevUrl, nextUrl } = paginationUrls(url, page.pageInfo));
+} catch (err) {
+  console.error('[products] load failed:', (err as Error).message);
+  loadError = true;
+  Astro.response.status = 503;
+}
+---
+
+<BaseLayout title="The Collection" description="The full range — every Aurelis piece in one place.">
+  <section class="page-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="crumb-sep">/</span>
+        <span class="current">All Products</span>
+      </nav>
+      <div class="hero-row">
+        <div class="hero-l">
+          <h1>The Collection</h1>
+          <p>Premium electronics curated for those who value refinement, performance, and the art of technology at its finest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <ProductListing
+    products={products}
+    sortOptions={SEARCH_SORT_OPTIONS}
+    sortValue={sort.value}
+    url={url}
+    basePath="/products"
+    prevUrl={prevUrl}
+    nextUrl={nextUrl}
+    filters={filters}
+    selectedFilters={selectedFilters}
+    emptyTitle={loadError ? 'Catalogue unavailable' : 'Nothing matches these filters'}
+    emptyBody={loadError ? 'We could not load the catalogue right now. Please try again shortly.' : 'Try removing a filter — or browse the full collection.'}
+  />
+</BaseLayout>

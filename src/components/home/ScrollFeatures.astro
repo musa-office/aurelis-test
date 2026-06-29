@@ -1,0 +1,86 @@
+---
+// Scroll-driven features — sticky section where the active feature +
+// image advance with scroll progress. Static editorial content.
+const features = [
+  { num: '01', title: 'Precision Engineering', desc: 'Every component crafted to exacting tolerances. From titanium frames to sapphire glass — zero compromises at every stage of production.', img: '/images/mp3lrvlu-Rectangle-4.jpg' },
+  { num: '02', title: 'Innovative Design', desc: 'Sleek and modern aesthetics combined with ergonomic functionality. Technology that looks as good as it performs, every single day.', img: '/images/mp3lrvlz-Rectangle-5.jpg' },
+  { num: '03', title: 'Sustainability Focused', desc: 'We source our raw materials from certified local producers. Every device built with our planet in mind — for the long haul.', img: '/images/mp3lrvm9-Rectangle-6.jpg' },
+  { num: '04', title: 'Premium Materials', desc: 'Aircraft-grade aluminum, Corning glass, and premium composites in every device. Built to last a decade, not a product cycle.', img: '/images/mp3lrvml-Rectangle-7.jpg' },
+  { num: '05', title: 'Advanced Technology', desc: 'Cutting-edge processors and AI-powered sensors engineered for the future. Performance without compromise, in every product we curate.', img: '/images/mp3lrvms-Rectangle-8.jpg' },
+];
+---
+
+<section class="section-scroll-features" id="sf-section" aria-labelledby="sf-heading">
+  <div class="sf-scroller">
+    <div class="sf-sticky">
+      <div class="sf-inner">
+        <div class="sf-left">
+          <div class="sf-eyebrow"><span class="sf-eyebrow-line"></span><span class="sf-eyebrow-text">Our Philosophy</span></div>
+          <h2 class="sf-heading" id="sf-heading">Making innovative<br />and accessible<br />products</h2>
+          <div class="sf-features-viewport">
+            <div class="sf-features" id="sf-features-list">
+              {features.map((f, i) => (
+                <div class={`sf-item${i === 0 ? ' active' : ''}`} data-index={i}>
+                  <span class="sf-item-num">{f.num}</span>
+                  <div class="sf-item-title">{f.title}</div>
+                  <div class="sf-item-desc">{f.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div class="sf-right">
+          <div class="sf-img-wrap">
+            <div class="sf-step-badge" id="sf-step-badge">01 / 05</div>
+            {features.map((f, i) => (
+              <img class={`sf-img${i === 0 ? ' active' : ''}`} src={f.img} alt={f.title} loading="lazy" />
+            ))}
+            <div class="sf-progress"><div class="sf-progress-fill" id="sf-progress-fill" style="width:20%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const section = document.getElementById('sf-section');
+  if (section) {
+    const scroller = section.querySelector('.sf-scroller') as HTMLElement;
+    const featuresList = section.querySelector('.sf-features') as HTMLElement | null;
+    const viewport = section.querySelector('.sf-features-viewport') as HTMLElement | null;
+    const items = Array.from(section.querySelectorAll('.sf-item'));
+    const imgs = Array.from(section.querySelectorAll('.sf-img'));
+    const badge = section.querySelector('#sf-step-badge');
+    const fill = section.querySelector('#sf-progress-fill') as HTMLElement | null;
+    const total = items.length;
+    let active = -1;
+    const onScroll = () => {
+      const rect = scroller.getBoundingClientRect();
+      const scrollable = scroller.offsetHeight - window.innerHeight;
+      if (scrollable <= 0) return;
+      const progress = Math.min(1, Math.max(0, -rect.top / scrollable));
+      const idx = Math.min(total - 1, Math.floor(progress * total));
+      if (idx === active) return;
+      active = idx;
+      items.forEach((el, i) => el.classList.toggle('active', i === idx));
+      imgs.forEach((el, i) => el.classList.toggle('active', i === idx));
+      if (badge) badge.textContent = `${String(idx + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+      if (fill) fill.style.width = `${((idx + 1) / total) * 100}%`;
+      // Scroll the features list so the active item is visible within the viewport
+      if (featuresList && viewport) {
+        const itemEl = items[0] as HTMLElement;
+        const itemH = itemEl.offsetHeight;
+        const visibleH = viewport.offsetHeight;
+        // Only apply transform when viewport is clipping (desktop)
+        if (visibleH < featuresList.offsetHeight) {
+          const maxShift = featuresList.offsetHeight - visibleH;
+          const shift = Math.min(Math.max(0, idx - 1) * itemH, maxShift);
+          featuresList.style.transform = `translateY(${-shift}px)`;
+        }
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+</script>

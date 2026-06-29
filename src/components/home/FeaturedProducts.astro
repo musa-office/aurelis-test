@@ -1,0 +1,103 @@
+---
+// Featured products — live Shopify products in a horizontal carousel.
+import type { ProductCard } from '~/lib/shopify/types';
+import HomeProductCard from './HomeProductCard.astro';
+
+interface Props {
+  products: ProductCard[];
+  eyebrow?: string;
+  title?: string;
+  bg?: string;
+}
+const { products, eyebrow = 'Curated Selection', title = 'Featured Products', bg } = Astro.props;
+---
+
+{products.length > 0 && (
+  <section class="section-products" aria-labelledby="products-heading" style={bg ? `--sp-bg:${bg}` : undefined}>
+    <div class="container">
+      <div class="sec-header">
+        <div>
+          <div class="eyebrow">
+            <div class="eyebrow-line"></div>
+            <span class="eyebrow-text">{eyebrow}</span>
+          </div>
+          <h2 class="sec-title" id="products-heading">{title}</h2>
+        </div>
+        <a href="/products" class="view-all">
+          View All Products
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="products-carousel-wrap">
+        <button class="carousel-nav carousel-nav-prev" data-pc-prev aria-label="Previous products">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div class="products-carousel" data-pc-track>
+          {products.map((p) => <HomeProductCard product={p} />)}
+        </div>
+        <button class="carousel-nav carousel-nav-next" data-pc-next aria-label="Next products">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile pagination dots (hidden on desktop, where the side arrows are used) */}
+      <div class="pc-dots" data-pc-dots>
+        {products.map((_, i) => (
+          <button class={`pc-dot${i === 0 ? ' active' : ''}`} data-pc-dot={i} type="button" aria-label={`Go to product ${i + 1}`}></button>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .products-carousel {
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+  .products-carousel::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('[data-pc-track]').forEach((track) => {
+    const el = track as HTMLElement;
+    const step = () => Math.max(280, el.clientWidth * 0.7);
+    const section = el.closest('.section-products');
+    const wrap = el.closest('.products-carousel-wrap');
+    wrap?.querySelector('[data-pc-prev]')?.addEventListener('click', () => el.scrollBy({ left: -step(), behavior: 'smooth' }));
+    wrap?.querySelector('[data-pc-next]')?.addEventListener('click', () => el.scrollBy({ left: step(), behavior: 'smooth' }));
+
+    // Mobile pagination dots — active dot follows the card nearest the left
+    // edge; clicking a dot scrolls that card into view. Uses bounding-rect
+    // deltas so it's independent of offsetParent / track padding.
+    const dots = Array.from(section?.querySelectorAll('[data-pc-dot]') ?? []) as HTMLElement[];
+    const cards = Array.from(el.children) as HTMLElement[];
+    if (dots.length) {
+      const syncDots = () => {
+        const left = el.getBoundingClientRect().left;
+        let idx = 0, min = Infinity;
+        cards.forEach((c, i) => {
+          const d = Math.abs(c.getBoundingClientRect().left - left);
+          if (d < min) { min = d; idx = i; }
+        });
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === idx));
+      };
+      dots.forEach((dot, i) => dot.addEventListener('click', () => {
+        const delta = cards[i].getBoundingClientRect().left - el.getBoundingClientRect().left;
+        el.scrollBy({ left: delta, behavior: 'smooth' });
+      }));
+      el.addEventListener('scroll', syncDots, { passive: true });
+      syncDots();
+    }
+  });
+</script>

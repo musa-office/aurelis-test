@@ -1,0 +1,36 @@
+---
+// Newsletter / final CTA — static. The form is a client-side stub
+// (no backend) that acknowledges the signup. Verbatim markup/classes.
+---
+
+<section class="section-newsletter" aria-labelledby="newsletter-heading">
+  <div class="newsletter-bg"></div>
+  <div class="container">
+    <div class="newsletter-inner">
+      <div class="eyebrow" style="justify-content: center; margin-bottom: 20px;">
+        <div class="eyebrow-line"></div>
+        <span class="eyebrow-text">Stay in the Know</span>
+        <div class="eyebrow-line"></div>
+      </div>
+      <h2 class="newsletter-title" id="newsletter-heading">
+        The <span class="t-gold">Edit</span> &mdash;<br />Our Monthly Curation
+      </h2>
+      <p class="newsletter-sub">
+        Receive exclusive first access to new arrivals, private member sales, and expert product reviews — directly from our curators.
+      </p>
+      <form class="newsletter-form" data-newsletter aria-label="Newsletter signup">
+        <input class="newsletter-input" type="email" placeholder="Enter your email address" aria-label="Email address" autocomplete="email" required />
+        <button type="submit" class="newsletter-submit">Subscribe</button>
+      </form>
+      <p class="newsletter-note">No spam. Unsubscribe at any time. &nbsp;·&nbsp; Privacy Policy</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelector('[data-newsletter]')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    form.innerHTML = '<p style="color:var(--gold);font-weight:600;">Thank you — you\'re on the list.</p>';
+  });
+</script>

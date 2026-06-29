@@ -1,0 +1,54 @@
+---
+// Sort dropdown — the Aurelis `.sort-wrap` menu. Options are real
+// links (sort param set, cursor cleared) so it works without JS;
+// a tiny script only toggles the menu open/closed.
+import type { SortOption } from '~/lib/shopify/types';
+
+interface Props {
+  options: SortOption[];
+  value: string;
+  /** Current page URL — used to build option hrefs preserving other params. */
+  url: URL;
+}
+
+const { options, value, url } = Astro.props;
+const current = options.find((o) => o.value === value) ?? options[0];
+
+function hrefFor(sortValue: string): string {
+  const params = new URLSearchParams(url.search);
+  params.set('sort', sortValue);
+  params.delete('after');
+  params.delete('before');
+  return `${url.pathname}?${params.toString()}`;
+}
+---
+
+<div class="sort-wrap" data-sort-wrap>
+  <button class="sort-btn" type="button" data-sort-btn aria-haspopup="true" aria-expanded="false">
+    <span>Sort: <span>{current.label}</span></span>
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  </button>
+  <div class="sort-menu" role="menu">
+    {options.map((o) => (
+      <a class={`sort-option${o.value === value ? ' is-active' : ''}`} href={hrefFor(o.value)} role="menuitem">
+        {o.label}
+      </a>
+    ))}
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[data-sort-wrap]').forEach((wrap) => {
+    const btn = wrap.querySelector('[data-sort-btn]');
+    btn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = wrap.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+  });
+  document.addEventListener('click', () => {
+    document.querySelectorAll('[data-sort-wrap].is-open').forEach((w) => w.classList.remove('is-open'));
+  });
+</script>

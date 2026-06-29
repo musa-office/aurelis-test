@@ -1,0 +1,104 @@
+---
+// Categories — live Shopify collections as a horizontal card slider.
+import type { Collection } from '~/lib/shopify/types';
+
+interface Props {
+  collections: Collection[];
+}
+const { collections } = Astro.props;
+---
+
+{collections.length > 0 && (
+  <section class="section-categories" aria-labelledby="cat-heading">
+    <div class="container">
+      <div class="sec-header cat-header">
+        <div>
+          <div class="eyebrow">
+            <div class="eyebrow-line"></div>
+            <span class="eyebrow-text">Browse by Category</span>
+          </div>
+          <h2 class="sec-title" id="cat-heading">Find Your Perfect Device</h2>
+        </div>
+      </div>
+
+      <div class="cat-slider-outer">
+        <div class="cat-slider-viewport" data-cat-viewport>
+          <div class="cat-track" data-cat-track>
+            {collections.map((c) => (
+              <a href={`/collections/${c.handle}`} class="cat-card">
+                <div class="cat-card-img-wrap">
+                  {c.image && <img src={c.image.url} alt={c.image.altText ?? c.title} loading="lazy" />}
+                </div>
+                <span class="cat-card-label">{c.title}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+        <div class="cat-nav-bottom" data-cat-nav hidden>
+          <div class="cat-progress-track">
+            <div class="cat-progress-fill" data-cat-fill></div>
+          </div>
+          <div class="cat-arrows-bottom">
+            <button class="cat-arrow cat-prev" data-cat-prev aria-label="Previous categories">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button class="cat-arrow cat-next" data-cat-next aria-label="Next categories">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  /* Adapt the slider to native horizontal scroll (the original used a
+     JS transform with cloned cards). Scoped, so it only affects this section. */
+  .cat-slider-viewport {
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+  .cat-slider-viewport::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+<script>
+  // The scroll container is the viewport (overflow-x: auto), NOT the inner
+  // flex track. Drive scrollBy / read scroll position from the viewport.
+  const viewport = document.querySelector('[data-cat-viewport]') as HTMLElement | null;
+  if (viewport) {
+    const fill = document.querySelector('[data-cat-fill]') as HTMLElement | null;
+    const nav = document.querySelector('[data-cat-nav]') as HTMLElement | null;
+    const prev = document.querySelector('[data-cat-prev]') as HTMLButtonElement | null;
+    const next = document.querySelector('[data-cat-next]') as HTMLButtonElement | null;
+    const step = () => Math.max(240, viewport.clientWidth * 0.6);
+    const maxScroll = () => viewport.scrollWidth - viewport.clientWidth;
+
+    const update = () => {
+      const max = maxScroll();
+      const hasOverflow = max > 1;
+      // No overflow (desktop, all cards fit) → hide the nav entirely.
+      if (nav) nav.hidden = !hasOverflow;
+      if (!hasOverflow) return;
+      if (fill) {
+        const pct = (viewport.scrollLeft / max) * 100;
+        fill.style.width = `${Math.max(6, pct)}%`;
+      }
+      if (prev) prev.disabled = viewport.scrollLeft <= 1;
+      if (next) next.disabled = viewport.scrollLeft >= max - 1;
+    };
+
+    prev?.addEventListener('click', () => viewport.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next?.addEventListener('click', () => viewport.scrollBy({ left: step(), behavior: 'smooth' }));
+    viewport.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  }
+</script>

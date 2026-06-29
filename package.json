@@ -1,0 +1,50 @@
+{
+  "name": "aurelis",
+  "type": "module",
+  "version": "0.1.0",
+  "author": {
+    "name": "Aslam Hasib",
+    "email": "hello@hasthemes.com",
+    "url": "https://hasthemes.com"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "/",
+  "repository": {
+    "type": "git",
+    "url": "#"
+  },
+  "bugs": {
+    "url": "#",
+    "email": "support@hasthemes.com"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "release:patch": "npm version patch -m \"chore: release %s\" && git push && git push --tags",
+    "release:minor": "npm version minor -m \"chore: release %s\" && git push && git push --tags",
+    "release:major": "npm version major -m \"chore: release %s\" && git push && git push --tags"
+  },
+  "dependencies": {
+    "@astrojs/node": "^10",
+    "@astrojs/react": "^4",
+    "@nanostores/react": "^0.8",
+    "astro": "^6.4.7",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.20.0",
+    "nanostores": "^0.11",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^26.0.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^6.0.3"
+  }
+}

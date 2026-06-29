@@ -1,0 +1,264 @@
+---
+// ============================================================
+//  PDP — product detail. Gallery + buy box + accordion + related.
+//  All Shopify data fetched server-side; graceful 404 / 503.
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ProductGallery from '~/components/react/ProductGallery.tsx';
+import ProductBuyBox from '~/components/react/ProductBuyBox.tsx';
+import ProductGrid from '~/components/product/ProductGrid.astro';
+import RecentlyViewed from '~/components/react/RecentlyViewed.tsx';
+import Trust from '~/components/home/Trust.astro';
+import { getProduct, getProductRecommendations } from '~/lib/shopify';
+import type { Image, Product, ProductCard } from '~/lib/shopify/types';
+import '~/styles/product-card.css';
+import '~/styles/pages/product.css';
+
+const { handle } = Astro.params;
+
+let product: Product | null = null;
+let recommendations: ProductCard[] = [];
+let loadFailed = false;
+
+try {
+  product = await getProduct(handle!);
+} catch (err) {
+  loadFailed = true;
+  console.error('[product] load failed:', (err as Error).message);
+}
+
+if (product) {
+  try {
+    recommendations = await getProductRecommendations(product.id, 4);
+  } catch (err) {
+    console.error('[product] recommendations failed:', (err as Error).message);
+  }
+}
+
+if (loadFailed) {
+  Astro.response.status = 503;
+} else if (!product) {
+  Astro.response.status = 404;
+}
+
+const images: Image[] = product
+  ? product.images.length
+    ? product.images
+    : product.featuredImage
+      ? [product.featuredImage]
+      : []
+  : [];
+const currency = product?.priceRange.minVariantPrice.currencyCode ?? 'USD';
+const sub = product?.description ? product.description.slice(0, 160) : '';
+---
+
+<BaseLayout
+  title={product?.title}
+  description={product?.seo?.description ?? sub}
+  ogType={product ? 'product' : 'website'}
+  image={product?.featuredImage?.url}
+>
+  {!product ? (
+    <section class="container" style="padding:120px 0;text-align:center;">
+      <h1 class="pi-title" style="margin-bottom:12px;">
+        {loadFailed ? 'Something went wrong' : 'Product not found'}
+      </h1>
+      <p style="color:var(--taupe);margin-bottom:28px;">
+        {loadFailed
+          ? 'We could not load this product right now. Please try again shortly.'
+          : "The product you're looking for doesn't exist or is no longer available."}
+      </p>
+      <a href="/products" class="btn-dark">Back to Shop</a>
+    </section>
+  ) : (
+    <>
+      <div class="breadcrumb-bar">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span class="crumb-sep">/</span>
+            <a href="/products">Shop</a>
+            <span class="crumb-sep">/</span>
+            <span class="current">{product.title}</span>
+          </nav>
+          <div class="pdp-nav">
+            <a href="/products" class="pdp-nav-back">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Back to Shop
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <section class="product-main">
+        <div class="container">
+          <div class="pdp-grid">
+            <ProductGallery client:load images={images} title={product.title} />
+
+            <div class="pdp-info">
+              {product.vendor && (
+                <div class="pi-vendor">
+                  <span class="pi-vendor-line"></span>
+                  {product.vendor}
+                </div>
+              )}
+
+              <h1 class="pi-title">{product.title}</h1>
+
+              {sub && <p class="pi-sub">{sub}</p>}
+
+              <ProductBuyBox
+                client:load
+                id={product.id}
+                handle={product.handle}
+                title={product.title}
+                vendor={product.vendor}
+                image={product.featuredImage}
+                options={product.options}
+                variants={product.variants}
+                currencyCode={currency}
+              />
+
+              {/* Trust row */}
+              <div class="pi-trust-row">
+                <div class="pi-trust-item">
+                  <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="3" width="15" height="13" />
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                    <circle cx="5.5" cy="18.5" r="2.5" />
+                    <circle cx="18.5" cy="18.5" r="2.5" />
+                  </svg>
+                  <span class="pi-trust-text">Free Delivery</span>
+                </div>
+                <div class="pi-trust-item">
+                  <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10" />
+                    <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+                  </svg>
+                  <span class="pi-trust-text">30-Day Returns</span>
+                </div>
+                <div class="pi-trust-item">
+                  <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z" />
+                  </svg>
+                  <span class="pi-trust-text">2-Year Warranty</span>
+                </div>
+                <div class="pi-trust-item">
+                  <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="9 12 11 14 15 10" />
+                  </svg>
+                  <span class="pi-trust-text">Authentic</span>
+                </div>
+              </div>
+
+              {/* Accordion */}
+              <div class="pi-accordion">
+                {product.descriptionHtml && (
+                  <div class="pi-acc-item is-open">
+                    <button class="pi-acc-head" type="button">
+                      <span>Description</span>
+                      <span class="pi-acc-icon"></span>
+                    </button>
+                    <div class="pi-acc-body">
+                      <div class="pi-acc-content" set:html={product.descriptionHtml}></div>
+                    </div>
+                  </div>
+                )}
+                <div class="pi-acc-item">
+                  <button class="pi-acc-head" type="button">
+                    <span>Shipping &amp; Returns</span>
+                    <span class="pi-acc-icon"></span>
+                  </button>
+                  <div class="pi-acc-body">
+                    <div class="pi-acc-content">
+                      <p><b style="color:var(--carbon);">Free Delivery</b> on orders over $500, with complimentary returns.</p>
+                      <p><b style="color:var(--carbon);">30-Day Returns</b> — if it's not right, send it back within 30 days for a full refund.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="pi-acc-item">
+                  <button class="pi-acc-head" type="button">
+                    <span>Warranty &amp; Support</span>
+                    <span class="pi-acc-icon"></span>
+                  </button>
+                  <div class="pi-acc-body">
+                    <div class="pi-acc-content">
+                      <p><b style="color:var(--carbon);">2-Year Warranty</b> covering manufacturing defects and electronics.</p>
+                      <p>Personal support specialists on call for setup, tuning, or claims.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payments */}
+              <div class="pi-payments">
+                <span class="pi-payments-label">Secure Checkout</span>
+                <div class="pi-payments-icons">
+                  <span class="pi-pay-icon">VISA</span>
+                  <span class="pi-pay-icon">MC</span>
+                  <span class="pi-pay-icon">AMEX</span>
+                  <span class="pi-pay-icon">PAYPAL</span>
+                  <span class="pi-pay-icon">APPLE</span>
+                  <span class="pi-pay-icon">KLARNA</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {recommendations.length > 0 && (
+        <section class="section-related" id="section-related">
+          <div class="container">
+            <div class="sec-head">
+              <div class="sec-eyebrow"><span class="sec-eyebrow-line"></span> Curator's Selection <span class="sec-eyebrow-line"></span></div>
+              <h2 class="sec-title">You May Also <span class="t-gold">Like</span></h2>
+            </div>
+            <ProductGrid products={recommendations} class="related-grid" />
+          </div>
+        </section>
+      )}
+
+      <section class="section-quote">
+        <div class="container">
+          <div class="quote-inner">
+            <div class="quote-mark">&ldquo;</div>
+            <p class="quote-text">Every product in the Aurelis collection is a statement of intent — engineered to <span class="t-gold">perform at the highest level,</span> built to last a lifetime.</p>
+            <div class="quote-attribution">
+              <span class="quote-attr-line"></span>
+              <span class="quote-attr-text">Alexandra Voss &middot; <b>Editor in Chief, Prestige Tech Review</b></span>
+              <span class="quote-attr-line"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <RecentlyViewed client:load currentHandle={product.handle} />
+    </>
+  )}
+
+  <Trust />
+</BaseLayout>
+
+<script>
+  // Accordion toggle (presentational).
+  document.querySelectorAll('.pi-acc-head').forEach((head) => {
+    head.addEventListener('click', () => {
+      head.closest('.pi-acc-item')?.classList.toggle('is-open');
+    });
+  });
+</script>
+
+{product && (
+  <script define:vars={{ rvHandle: product.handle }}>
+    try {
+      const KEY = 'omnix_recently_viewed';
+      const stored = JSON.parse(localStorage.getItem(KEY) ?? '[]');
+      const updated = [rvHandle, ...stored.filter((h) => h !== rvHandle)].slice(0, 8);
+      localStorage.setItem(KEY, JSON.stringify(updated));
+    } catch {}
+  </script>
+)}

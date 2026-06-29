@@ -1,0 +1,66 @@
+---
+// ============================================================
+//  Collections index — every collection as a card.
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import CollectionCard from '~/components/collection/CollectionCard.astro';
+import { getAllCollections } from '~/lib/shopify';
+import type { Collection } from '~/lib/shopify/types';
+import '~/styles/pages/shop.css';
+
+let collections: Collection[] = [];
+let loadError = false;
+try {
+  collections = await getAllCollections();
+} catch (err) {
+  console.error('[collections] load failed:', (err as Error).message);
+  loadError = true;
+  Astro.response.status = 503;
+}
+---
+
+<BaseLayout title="Collections" description="Shop the full Aurelis range by collection.">
+  <section class="page-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="crumb-sep">/</span>
+        <span class="current">Collections</span>
+      </nav>
+      <div class="hero-row">
+        <div class="hero-l">
+          <h1>Collections</h1>
+          <p>Curated edits — explore the range by category.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shop-main">
+    <div class="container">
+      {collections.length > 0 ? (
+        <div class="collections-grid">
+          {collections.map((c) => <CollectionCard collection={c} />)}
+        </div>
+      ) : (
+        <p style="padding:80px 0;text-align:center;color:var(--taupe);">
+          {loadError ? 'Collections are unavailable right now.' : 'No collections yet.'}
+        </p>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .collections-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+  @media (max-width: 900px) {
+    .collections-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .collections-grid { grid-template-columns: 1fr; }
+  }
+</style>

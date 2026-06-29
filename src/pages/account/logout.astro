@@ -1,0 +1,16 @@
+---
+// Clear the local session, then bounce through Shopify's logout so
+// the Customer Account session ends too. Falls back to home if there
+// is no id_token to hand back.
+import { getIdToken, clearSession, buildLogoutUrl, getOrigin, isCustomerAuthConfigured } from '~/lib/shopify/customer';
+
+const idToken = getIdToken(Astro.cookies);
+clearSession(Astro.cookies);
+
+if (isCustomerAuthConfigured && idToken) {
+  const logoutUrl = buildLogoutUrl(idToken, `${getOrigin(Astro)}/`);
+  return Astro.redirect(logoutUrl, 302);
+}
+
+return Astro.redirect('/', 302);
+---

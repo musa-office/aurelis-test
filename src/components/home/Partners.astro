@@ -1,0 +1,35 @@
+---
+// Partners — brand wall + stats. Static editorial.
+const partners = [
+  ['◐', 'Lumino'], ['▲', 'Vertex'], ['◆', 'Helix'], ['●', 'Atlas'], ['✦', 'Aurea'], ['⬡', 'Forma'],
+  ['◢', 'Nordix'], ['⬢', 'Kovari'], ['◇', 'Prisma'], ['◑', 'Solace'], ['▼', 'Quanta'], ['○', 'Halcyon'],
+];
+const stats = [
+  ['500', '+', 'Premium Brands'], ['12', 'K+', 'Curated Products'], ['47', '', 'Countries Served'], ['15', 'yrs', 'Of Curation'],
+];
+---
+
+<section class="section-partners" aria-labelledby="partners-heading">
+  <div class="container">
+    <div class="partners-head">
+      <div class="eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Trusted Partners</span><div class="eyebrow-line"></div></div>
+      <h2 class="sec-title" id="partners-heading">Curating the World's Finest Brands</h2>
+      <p>From flagship innovators to boutique audio houses — every brand on our shelf has earned its place through uncompromising craft.</p>
+    </div>
+
+    <div class="partners-grid">
+      {partners.map(([mark, name]) => (
+        <div class="partner-cell"><span class="partner-logo"><span class="pl-mark">{mark}</span> {name}</span></div>
+      ))}
+    </div>
+
+    <div class="partners-stats-row">
+      {stats.map(([num, em, label]) => (
+        <div class="partners-stat">
+          <div class="partners-stat-num">{num}{em && <em>{em}</em>}</div>
+          <div class="partners-stat-label">{label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

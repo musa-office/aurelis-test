@@ -1,0 +1,235 @@
+/* ===========================================
+   RESET & BASE
+   Extracted verbatim from the Aurelis Luxury design.
+=========================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: clip;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #F8F6F1;
+  color: #171717;
+  line-height: 1.65;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+/* ===========================================
+   ACCESSIBILITY — respect reduced motion
+=========================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===========================================
+   LAYOUT UTILITY
+=========================================== */
+.container {
+  max-width: var(--container);
+  width: 100%;
+  margin: 0 auto;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+/* Shared section labels */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.eyebrow-line {
+  width: 28px;
+  height: 1px;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+
+.eyebrow-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* Shared buttons */
+.btn-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 34px;
+  background: var(--obsidian);
+  color: var(--white);
+  border: 1px solid var(--obsidian);
+  border-radius: var(--r-pill);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all var(--t-base) var(--ease-out);
+}
+
+.btn-dark:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--obsidian);
+  transform: translateY(-2px);
+}
+
+.btn-dark-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 34px;
+  background: transparent;
+  color: var(--carbon);
+  border: 1px solid var(--carbon);
+  border-radius: var(--r-pill);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all var(--t-base) var(--ease-out);
+}
+
+.btn-dark-outline:hover {
+  background: var(--carbon);
+  color: var(--white);
+}
+
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 34px;
+  background: var(--gold);
+  color: var(--obsidian);
+  border: 1px solid var(--gold);
+  border-radius: var(--r-pill);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all var(--t-base) var(--ease-out);
+}
+
+.btn-gold:hover {
+  background: var(--gold-hover);
+  transform: translateY(-2px);
+}
+
+.btn-ghost-white {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 34px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--r-pill);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all var(--t-base) var(--ease-out);
+}
+
+.btn-ghost-white:hover {
+  border-color: var(--gold);
+  color: var(--white);
+}
+
+/* View All link */
+.view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--taupe);
+  border-bottom: 1px solid var(--platinum);
+  padding-bottom: 3px;
+  transition: all var(--t-base) ease;
+}
+
+.view-all:hover {
+  color: var(--carbon);
+  border-color: var(--carbon);
+}
+
+/* Back to top */
+.back-to-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 900;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--obsidian);
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 106, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  background: var(--gold);
+  color: var(--obsidian);
+  border-color: var(--gold);
+}
+
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: 20px;
+    right: 16px;
+    width: 42px;
+    height: 42px;
+  }
+}

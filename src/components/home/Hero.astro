@@ -1,0 +1,97 @@
+---
+// Hero — full-bleed rotating slider. Editorial content (static), CTAs
+// link into the catalogue. Auto-rotates via a small presentational script.
+const slides = [
+  {
+    img: '/images/hero-1.jpg',
+    eyebrow: 'Spring Drop 2025',
+    titleA: 'Premium Sound,',
+    titleB: 'Redefined',
+    accent: 'Experience',
+    sub: 'Wireless ANC headphones engineered for audiophiles who demand nothing less than perfection in every note.',
+    cta: { label: 'Shop Audio', href: '/products' },
+  },
+  {
+    img: '/images/hero-2.jpg',
+    eyebrow: 'Best Seller 2025',
+    titleA: 'Power Meets',
+    titleB: 'Elegant',
+    accent: 'Design',
+    sub: 'The ProBook Ultra X1 redefines what a laptop can be — OLED display, all-day battery, and an obsidian chassis built to impress.',
+    cta: { label: 'Shop Laptops', href: '/products' },
+  },
+  {
+    img: '/images/hero-3.jpg',
+    eyebrow: 'New Arrival',
+    titleA: 'Time Worn',
+    titleB: 'With',
+    accent: 'Purpose',
+    sub: 'The ChronoX Elite bridges Swiss craftsmanship with cutting-edge health and performance technology on your wrist.',
+    cta: { label: 'Shop Wearables', href: '/products' },
+  },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="hero" aria-label="Featured products slider">
+  <div class="hero-slider" aria-hidden="true">
+    {slides.map((s, i) => (
+      <div class={`hero-slide${i === 0 ? ' active' : ''}`}>
+        <div class="hs-bg">
+          <img src={s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
+          <div class="hs-overlay"></div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="hero-content">
+    <div class="container">
+      <div class="hero-text-wrap">
+        {slides.map((s, i) => (
+          <div class={`hero-text${i === 0 ? ' active' : ''}`} data-slide={i}>
+            <div class="hero-slide-eyebrow">
+              <span class="hse-dot"></span>
+              <span class="hse-text">{s.eyebrow}</span>
+            </div>
+            <h1 class="hero-slide-title">{s.titleA}<br />{s.titleB} <span class="t-gold">{s.accent}</span></h1>
+            <p class="hero-slide-sub">{s.sub}</p>
+            <div class="hero-slide-cta">
+              <a href={s.cta.href} class="btn-slide-primary">{s.cta.label}</a>
+              <a href="/products" class="btn-slide-ghost">View All Products</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-indicators" aria-hidden="true">
+    <div class="hero-counter">
+      <span class="hc-cur">01</span>
+      <span class="hc-sep"> / </span>
+      <span class="hc-total">{pad(slides.length)}</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  const hero = document.querySelector('.hero');
+  if (hero) {
+    const bgs = Array.from(hero.querySelectorAll('.hero-slide'));
+    const texts = Array.from(hero.querySelectorAll('.hero-text'));
+    const cur = hero.querySelector('.hc-cur');
+    let i = 0;
+    const total = bgs.length;
+    if (total > 1) {
+      setInterval(() => {
+        bgs[i].classList.remove('active');
+        texts[i].classList.remove('active');
+        i = (i + 1) % total;
+        bgs[i].classList.add('active');
+        texts[i].classList.add('active');
+        if (cur) cur.textContent = String(i + 1).padStart(2, '0');
+      }, 5500);
+    }
+  }
+</script>

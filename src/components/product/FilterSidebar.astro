@@ -1,0 +1,205 @@
+---
+// Faceted filter sidebar — driven by Shopify's collection `filters`.
+// JS-free: a GET <form> round-trips each selected filter value's
+// `input` (canonical JSON) as a `filter` query param; the page parses
+// them back into the Storefront `filters` arg. A tiny script collapses/
+// expands groups and assembles the PRICE_RANGE min/max into one `filter`.
+import type { CollectionFilter } from '~/lib/shopify/types';
+
+interface Props {
+  filters: CollectionFilter[];
+  selected: string[];
+  basePath: string;
+  sortValue: string;
+}
+
+const { filters, selected, basePath, sortValue } = Astro.props;
+
+// Shopify's `FilterValue.input` is a JSON scalar — normalize to string so it
+// round-trips correctly as a URL query param (JSON.stringify is a no-op if
+// Shopify already returns it as a string, safe either way).
+function toInputStr(input: unknown): string {
+  return typeof input === 'string' ? input : JSON.stringify(input);
+}
+
+// LIST/BOOLEAN facets render as checkboxes; PRICE_RANGE renders as a
+// min/max pair (handled separately below).
+const listFilters = filters.filter(
+  (f) => f.type !== 'PRICE_RANGE' && f.values.some((v) => v.count > 0),
+);
+
+// Price facet — its single value's `input` carries the catalogue bounds,
+// e.g. {"price":{"min":0,"max":1200}}.
+const priceFacet = filters.find((f) => f.type === 'PRICE_RANGE');
+let priceBounds: { min: number; max: number } | null = null;
+if (priceFacet?.values?.[0]) {
+  try {
+    const p = JSON.parse(toInputStr(priceFacet.values[0].input));
+    if (p?.price) {
+      priceBounds = { min: Math.floor(p.price.min ?? 0), max: Math.ceil(p.price.max ?? 0) };
+    }
+  } catch {}
+}
+const hasPrice = !!(priceFacet && priceBounds && priceBounds.max > priceBounds.min);
+
+// A price filter already applied (from the URL) — pre-fill the inputs and
+// persist it so it survives checkbox auto-submits.
+let selectedPrice: { min: number | null; max: number | null } | null = null;
+let selectedPriceInput = '';
+for (const s of selected) {
+  try {
+    const p = JSON.parse(s);
+    if (p?.price) {
+      selectedPrice = { min: p.price.min ?? null, max: p.price.max ?? null };
+      selectedPriceInput = s;
+      break;
+    }
+  } catch {}
+}
+
+// Render order: Availability, Price, (Size / Color / …), Brand last.
+type Slot = { kind: 'price' } | { kind: 'list'; filter: CollectionFilter };
+const brandFacet = listFilters.find((f) => f.id === 'filter.p.vendor' || f.label.toLowerCase() === 'brand');
+const nonBrand = listFilters.filter((f) => f !== brandFacet);
+const slots: Slot[] = [];
+if (nonBrand[0]) slots.push({ kind: 'list', filter: nonBrand[0] }); // Availability (or first facet)
+if (hasPrice) slots.push({ kind: 'price' });                         // Price moved up
+for (const f of nonBrand.slice(1)) slots.push({ kind: 'list', filter: f });
+if (brandFacet) slots.push({ kind: 'list', filter: brandFacet });    // Brand last
+---
+
+<aside class="filter-sidebar" aria-label="Product filters">
+  <button class="filter-close" type="button" data-filter-toggle aria-label="Close filters">
+    <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+  <form method="GET" action={basePath} data-filter-form>
+    <input type="hidden" name="sort" value={sortValue} />
+    {/* Persisted price filter — kept in the form so it survives checkbox
+        auto-submits; the price <script> rebuilds it when the user edits. */}
+    {selectedPriceInput && (
+      <input type="hidden" name="filter" value={selectedPriceInput} data-price-hidden />
+    )}
+
+    {slots.map((slot) => slot.kind === 'price' && priceBounds ? (
+      <div class="filter-group" data-price-group data-price-floor={priceBounds.min} data-price-ceil={priceBounds.max}>
+        <button class="filter-head" type="button" data-filter-head aria-expanded="true">
+          <span class="filter-title">{priceFacet!.label}</span>
+          <svg class="filter-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <div class="filter-body">
+          <div class="fl-price">
+            <div class="fl-price-field">
+              <span class="fl-price-cur">$</span>
+              <input type="number" class="fl-price-input" data-price-min inputmode="numeric" min={priceBounds.min} max={priceBounds.max} placeholder={String(priceBounds.min)} value={selectedPrice?.min ?? ''} aria-label="Minimum price" />
+            </div>
+            <span class="fl-price-sep">–</span>
+            <div class="fl-price-field">
+              <span class="fl-price-cur">$</span>
+              <input type="number" class="fl-price-input" data-price-max inputmode="numeric" min={priceBounds.min} max={priceBounds.max} placeholder={String(priceBounds.max)} value={selectedPrice?.max ?? ''} aria-label="Maximum price" />
+            </div>
+            <button type="button" class="fl-price-go" data-price-apply>Go</button>
+          </div>
+        </div>
+      </div>
+    ) : slot.kind === 'list' ? (
+      <div class="filter-group">
+        <button class="filter-head" type="button" data-filter-head aria-expanded="true">
+          <span class="filter-title">{slot.filter.label}</span>
+          <svg class="filter-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <div class="filter-body">
+          <div class="fl-list">
+            {slot.filter.values.filter((v) => v.count > 0).map((v) => (
+              <label class="fl-item">
+                <input type="checkbox" class="fl-input" name="filter" value={toInputStr(v.input)} checked={selected.includes(toInputStr(v.input))} />
+                <span class="fl-check">
+                  <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </span>
+                <span class="fl-label">{v.label}</span>
+                <span class="fl-count">{v.count}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+    ) : null)}
+
+    <div class="filter-actions">
+      <a class="filter-reset-btn" href={basePath}>Reset All</a>
+      <button class="filter-apply-btn" type="submit">Apply Filters</button>
+    </div>
+  </form>
+</aside>
+
+<script>
+  // Collapse / expand filter groups
+  document.querySelectorAll('[data-filter-head]').forEach((head) => {
+    head.addEventListener('click', () => {
+      const group = head.closest('.filter-group');
+      const collapsed = group?.classList.toggle('is-collapsed');
+      head.setAttribute('aria-expanded', String(!collapsed));
+    });
+  });
+
+  // Auto-submit on any checkbox change so users don't need to click Apply
+  const form = document.querySelector<HTMLFormElement>('[data-filter-form]');
+  if (form) {
+    form.querySelectorAll('.fl-input').forEach((input) => {
+      input.addEventListener('change', () => {
+        // Mark loading AFTER submit so checked state is still collected
+        form.submit();
+        form.classList.add('is-submitting');
+        const applyBtn = form.querySelector<HTMLButtonElement>('.filter-apply-btn');
+        if (applyBtn) { applyBtn.textContent = 'Applying…'; applyBtn.disabled = true; }
+      });
+    });
+
+    // Price range → assemble a single {"price":{min,max}} filter param.
+    // The min/max inputs have no `name` (so they don't submit on their own);
+    // this rebuilds the persisted hidden `filter` input, then submits.
+    const priceGroup = document.querySelector('[data-price-group]');
+    if (priceGroup) {
+      const floor = Number(priceGroup.getAttribute('data-price-floor'));
+      const ceil = Number(priceGroup.getAttribute('data-price-ceil'));
+      const minEl = priceGroup.querySelector<HTMLInputElement>('[data-price-min]');
+      const maxEl = priceGroup.querySelector<HTMLInputElement>('[data-price-max]');
+      const applyPrice = () => {
+        form.querySelectorAll('[data-price-hidden]').forEach((el) => el.remove());
+        let min = minEl && minEl.value !== '' ? Math.max(floor, Number(minEl.value)) : floor;
+        let max = maxEl && maxEl.value !== '' ? Math.min(ceil, Number(maxEl.value)) : ceil;
+        if (Number.isNaN(min)) min = floor;
+        if (Number.isNaN(max)) max = ceil;
+        if (min > max) { const t = min; min = max; max = t; }
+        // Only apply when narrower than the full catalogue range.
+        if (min > floor || max < ceil) {
+          const hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = 'filter';
+          hidden.setAttribute('data-price-hidden', '');
+          hidden.value = JSON.stringify({ price: { min, max } });
+          form.appendChild(hidden);
+        }
+        form.submit();
+        form.classList.add('is-submitting');
+      };
+      priceGroup.querySelector('[data-price-apply]')?.addEventListener('click', applyPrice);
+      [minEl, maxEl].forEach((el) =>
+        el?.addEventListener('keydown', (e) => {
+          if ((e as KeyboardEvent).key === 'Enter') { e.preventDefault(); applyPrice(); }
+        }),
+      );
+    }
+  }
+</script>
+
+<style>
+  form.is-submitting .fl-item { pointer-events: none; opacity: 0.6; }
+</style>

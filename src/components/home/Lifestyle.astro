@@ -1,0 +1,183 @@
+---
+// Shop by lifestyle — vertical tabs swap a showcase panel with real Shopify products.
+import type { ProductCard } from '~/lib/shopify/types';
+
+interface LifestyleProduct {
+  name: string;
+  cat: string;
+  price: string;
+  img: string;
+  handle: string;
+  variantId: string | null;
+}
+interface LifestyleTab {
+  id: string;
+  num: string;
+  title: string;
+  sub: string;
+  eyebrow: string;
+  img: string;
+  desc: string;
+  products: LifestyleProduct[];
+}
+interface Props { products?: ProductCard[]; }
+
+const { products = [] } = Astro.props;
+
+const TAB_DEFS = [
+  { id: 'home-office',        num: '01', title: 'The Home Office',      sub: 'Work from anywhere, perfectly',  eyebrow: 'Work Smarter', img: '/images/active-lifestyle.jpg',   desc: 'A considered desk setup that disappears into the work — quiet keys, a crisp display, and all-day power.' },
+  { id: 'creator-studio',     num: '02', title: 'Creator Studio',        sub: 'Where ideas come to life',       eyebrow: 'Create More',  img: '/images/creator-studio.jpg',     desc: 'Reference-grade tools for color, sound and motion — built for creators who sweat the details.' },
+  { id: 'frequent-traveller', num: '03', title: 'The Frequent Traveller', sub: 'Light. Powerful. Always ready.', eyebrow: 'Travel Light', img: '/images/traveler.jpg',           desc: "Everything you need, nothing you don't — featherweight devices and noise-cancelling calm at 35,000 ft." },
+  { id: 'active-life',        num: '04', title: 'Active Lifestyle',       sub: 'Move with the right tech',       eyebrow: 'Stay Moving',  img: '/images/active-lifestyle-2.jpg', desc: 'Track every mile and every beat with rugged wearables and earbuds that keep up with you.' },
+];
+
+const fmt = (amount: string) => '$' + Math.round(Number(amount)).toLocaleString();
+
+const mapProduct = (p: ProductCard): LifestyleProduct => ({
+  name: p.title,
+  cat: p.vendor ?? '',
+  price: fmt(p.priceRange.minVariantPrice.amount),
+  img: p.featuredImage?.url ?? '',
+  handle: p.handle,
+  variantId: p.firstVariantId ?? null,
+});
+
+const tabs: LifestyleTab[] = TAB_DEFS.map((def, i) => ({
+  ...def,
+  products: products.length > 0 ? products.slice(i * 3, i * 3 + 3).map(mapProduct) : [],
+}));
+
+const first = tabs[0];
+---
+
+<section class="section-lifestyle" aria-labelledby="lifestyle-heading">
+  <div class="container">
+    <div class="sec-header">
+      <div>
+        <div class="eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Curated Setups</span></div>
+        <h2 class="sec-title" id="lifestyle-heading">Shop by Lifestyle</h2>
+      </div>
+    </div>
+
+    <div class="lifestyle-tabs-wrap">
+      <div class="lifestyle-tabs">
+        {tabs.map((t, i) => (
+          <button class={`ls-tab${i === 0 ? ' active' : ''}`} data-ls-tab={t.id}>
+            <span class="ls-tab-num">{t.num}</span>
+            <div class="ls-tab-content">
+              <div class="ls-tab-title">{t.title}</div>
+              <div class="ls-tab-sub">{t.sub}</div>
+            </div>
+            <svg class="ls-tab-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </button>
+        ))}
+      </div>
+
+      <div class="lifestyle-panels">
+        <div class="ls-panel active" id="ls-dynamic-panel">
+          <div class="ls-panel-img">
+            <img id="ls-panel-img" src={first.img} alt={first.title} />
+            <span class="ls-panel-img-tag" id="ls-panel-tag">{first.products.length} products</span>
+          </div>
+          <div class="ls-panel-content">
+            <span class="ls-panel-eyebrow" id="ls-panel-eyebrow">{first.eyebrow}</span>
+            <h3 class="ls-panel-title" id="ls-panel-title">{first.title}</h3>
+            <p class="ls-panel-desc" id="ls-panel-desc">{first.desc}</p>
+            <div class="ls-panel-products" id="ls-panel-products">
+              {first.products.map((p) => (
+                <div class="ls-panel-product">
+                  <div class="ls-pp-img">
+                    {p.img && <img src={p.img} alt={p.name} loading="lazy" />}
+                  </div>
+                  <div class="ls-pp-info">
+                    <div class="ls-pp-name"><a href={`/products/${p.handle}`}>{p.name}</a></div>
+                    <div class="ls-pp-cat">{p.cat}</div>
+                  </div>
+                  <span class="ls-pp-price">{p.price}</span>
+                  <button class="ls-pp-add" type="button" aria-label={`Add ${p.name} to cart`} data-variant-id={p.variantId ?? ''}>
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div class="ls-panel-cta-row">
+              <a href="/products" class="ls-panel-cta" id="ls-panel-cta">
+                Shop Collection
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="application/json" data-ls-data set:html={JSON.stringify(tabs)}></script>
+<script>
+  import { addItem } from '~/stores/cart';
+
+  function esc(s: string) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function productHTML(p: { name: string; cat: string; price: string; img: string; handle: string; variantId: string | null }) {
+    return `<div class="ls-panel-product">
+      <div class="ls-pp-img">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : ''}</div>
+      <div class="ls-pp-info">
+        <div class="ls-pp-name"><a href="/products/${esc(p.handle)}">${esc(p.name)}</a></div>
+        <div class="ls-pp-cat">${esc(p.cat)}</div>
+      </div>
+      <span class="ls-pp-price">${esc(p.price)}</span>
+      <button class="ls-pp-add" type="button" aria-label="Add to cart" data-variant-id="${esc(p.variantId ?? '')}">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      </button>
+    </div>`;
+  }
+
+  const dataEl = document.querySelector('[data-ls-data]');
+  if (dataEl) {
+    const tabs = JSON.parse(dataEl.textContent || '[]') as any[];
+    const byId = Object.fromEntries(tabs.map((t) => [t.id, t]));
+    const set = (sel: string, v: string) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
+
+    document.querySelectorAll('[data-ls-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-ls-tab]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const t = byId[(btn as HTMLElement).dataset.lsTab as string];
+        if (!t) return;
+        const img = document.querySelector('#ls-panel-img') as HTMLImageElement | null;
+        if (img) { img.src = t.img; img.alt = t.title; }
+        set('#ls-panel-tag', `${t.products.length} products`);
+        set('#ls-panel-eyebrow', t.eyebrow);
+        set('#ls-panel-title', t.title);
+        set('#ls-panel-desc', t.desc);
+        const prod = document.querySelector('#ls-panel-products');
+        if (prod) prod.innerHTML = (t.products as any[]).map(productHTML).join('');
+      });
+    });
+  }
+
+  // Event delegation: add-to-cart for dynamically rendered product rows
+  document.querySelector('#ls-panel-products')?.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest('.ls-pp-add') as HTMLButtonElement | null;
+    if (!btn) return;
+    const variantId = btn.dataset.variantId;
+    if (!variantId) return;
+    e.stopPropagation();
+    btn.disabled = true;
+    const path = btn.querySelector('path');
+    if (path) path.setAttribute('d', 'M5 13l4 4L19 7');
+    try {
+      await addItem(variantId, 1);
+      setTimeout(() => {
+        if (path) path.setAttribute('d', 'M12 4v16m8-8H4');
+        btn.disabled = false;
+      }, 1500);
+    } catch {
+      if (path) path.setAttribute('d', 'M12 4v16m8-8H4');
+      btn.disabled = false;
+    }
+  });
+</script>

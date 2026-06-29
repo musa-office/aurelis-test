@@ -1,0 +1,225 @@
+---
+// Home product card — the home-luxury `.product-card` (distinct from
+// the shop `.pc-*` card). Maps Shopify ProductCard data; links to the
+// PDP. Rating / swatches / spec strip are omitted (no such data on the
+// card), and the hover actions link to the PDP rather than acting
+// inline (a variant must be chosen there).
+import type { ProductCard } from '~/lib/shopify/types';
+import { formatMoney, isOnSale, discountPercent } from '~/lib/utils';
+
+interface Props {
+  product: ProductCard;
+}
+
+const { product } = Astro.props;
+const href = `/products/${product.handle}`;
+const img = product.featuredImage;
+const price = product.priceRange.minVariantPrice;
+const compareAt = product.compareAtPriceRange?.minVariantPrice ?? null;
+const onSale = isOnSale(price, compareAt);
+const off = discountPercent(price, compareAt);
+const category = product.vendor ?? '';
+---
+
+<article class="product-card">
+  <div class="product-img-wrap">
+    <a href={href} class="product-img-inner" aria-label={product.title} style="display:block;">
+      {img && <img src={img.url} alt={img.altText ?? product.title} loading="lazy" />}
+    </a>
+    {onSale && off != null && <span class="p-badge sale">−{off}%</span>}
+    {!product.availableForSale && <span class="p-badge">Sold Out</span>}
+    <div class="p-side-actions">
+      <button
+        class="p-wish"
+        type="button"
+        data-wish-handle={product.handle}
+        data-wish-title={product.title}
+        data-wish-price={formatMoney(price.amount, price.currencyCode)}
+        data-wish-image={img?.url ?? ''}
+        data-wish-variant={product.firstVariantId ?? ''}
+        aria-label="Add to wishlist"
+      >
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+      </button>
+      <button
+        class="p-compare"
+        type="button"
+        data-compare-id={product.id}
+        data-compare-handle={product.handle}
+        data-compare-title={product.title}
+        data-compare-price={formatMoney(price.amount, price.currencyCode)}
+        data-compare-image={img?.url ?? ''}
+        data-compare-vendor={product.vendor ?? ''}
+        aria-label="Compare product"
+      >
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+        </svg>
+      </button>
+    </div>
+    <div class="p-hover-actions">
+      <button class="p-hover-btn p-hb-qv" type="button" data-qv-handle={product.handle} aria-label={`Quick view ${product.title}`}>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        View
+      </button>
+      <button class="p-hover-btn p-hb-atc" type="button" data-atc-handle={product.handle} aria-label={`Add ${product.title} to cart`}>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span class="p-btn-label">Add to Cart</span>
+      </button>
+    </div>
+  </div>
+  <div class="product-info">
+    {category && <p class="p-cat">{category}</p>}
+    <h3 class="p-title"><a href={href}>{product.title}</a></h3>
+    {product.colorSwatches.length > 0 && (
+      <div class="p-swatches">
+        {product.colorSwatches.slice(0, 4).map((s, i) => (
+          <span
+            class={`p-swatch${i === 0 ? ' active' : ''}`}
+            style={`background:${s.hex};`}
+            title={s.name}
+            role="button"
+            tabindex="0"
+            aria-label={`Show ${s.name}`}
+            data-swatch-image={s.image ?? ''}
+          />
+        ))}
+        {product.colorSwatches.length > 4 && (
+          <span class="p-swatch-more">+{product.colorSwatches.length - 4}</span>
+        )}
+      </div>
+    )}
+    <div class="p-pricing">
+      <span class="p-price-now">{formatMoney(price.amount, price.currencyCode)}</span>
+      {onSale && compareAt && <span class="p-price-was">{formatMoney(compareAt.amount, compareAt.currencyCode)}</span>}
+    </div>
+  </div>
+</article>
+
+<script>
+  import { toggleWish, isWished, initWishlist, $wishlist } from '~/stores/wishlist';
+  import { toggleCompare, isCompared, initCompare, $compare } from '~/stores/compare';
+
+  function syncHomeWish() {
+    document.querySelectorAll<HTMLButtonElement>('.p-wish[data-wish-handle]').forEach((btn) => {
+      const on = isWished(btn.dataset.wishHandle!);
+      btn.classList.toggle('wished', on);
+      const svg = btn.querySelector('svg');
+      if (svg) svg.setAttribute('fill', on ? 'currentColor' : 'none');
+    });
+  }
+
+  function syncHomeCompare() {
+    document.querySelectorAll<HTMLButtonElement>('.p-compare[data-compare-id]').forEach((btn) => {
+      btn.classList.toggle('is-active', isCompared(btn.dataset.compareId!));
+    });
+  }
+
+  initWishlist();
+  initCompare();
+  $wishlist.subscribe(syncHomeWish);
+  $compare.subscribe(syncHomeCompare);
+
+  // Single delegated listener for all card actions (deduped across card instances).
+  if (!(window as any).__cardListening) {
+    (window as any).__cardListening = true;
+
+    // Colour swatch → swap the card's main image to that variant's image.
+    const activateSwatch = (swatchEl: HTMLElement) => {
+      const card = swatchEl.closest('.product-card');
+      const img = card?.querySelector('.product-img-inner img') as HTMLImageElement | null;
+      const src = swatchEl.dataset.swatchImage;
+      if (img && src) img.src = src;
+      card?.querySelectorAll('.p-swatch').forEach((s) => s.classList.remove('active'));
+      swatchEl.classList.add('active');
+    };
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as Element;
+
+      // Colour swatch
+      const swatchEl = target.closest('.p-swatch[data-swatch-image]') as HTMLElement | null;
+      if (swatchEl) { activateSwatch(swatchEl); return; }
+
+      // Wishlist toggle
+      const wishBtn = target.closest('.p-wish[data-wish-handle]') as HTMLElement | null;
+      if (wishBtn) {
+        const d = (wishBtn as HTMLElement).dataset;
+        toggleWish({
+          handle: d.wishHandle!,
+          title: d.wishTitle!,
+          price: d.wishPrice!,
+          image: d.wishImage || null,
+          variantId: d.wishVariant || null,
+        });
+        return;
+      }
+
+      // Compare toggle
+      const cmpBtn = target.closest('.p-compare[data-compare-id]') as HTMLElement | null;
+      if (cmpBtn) {
+        const d = cmpBtn.dataset;
+        toggleCompare({
+          id: d.compareId!,
+          handle: d.compareHandle!,
+          title: d.compareTitle!,
+          price: d.comparePrice!,
+          image: d.compareImage || null,
+          vendor: d.compareVendor || null,
+        });
+        return;
+      }
+
+      // Quick-view
+      const qvBtn = target.closest('[data-qv-handle]') as HTMLElement | null;
+      if (qvBtn) {
+        window.dispatchEvent(new CustomEvent('qv:open', { detail: { handle: qvBtn.dataset.qvHandle } }));
+        return;
+      }
+
+      // Shop Now — quick add to cart
+      const atcBtn = target.closest('[data-atc-handle]') as HTMLElement | null;
+      if (!atcBtn || atcBtn.dataset.atcBusy) return;
+
+      const handle = atcBtn.dataset.atcHandle!;
+      const label = atcBtn.querySelector('.p-btn-label, span:last-child') as HTMLElement | null;
+      const originalText = atcBtn.textContent?.trim() ?? 'Shop Now';
+
+      atcBtn.dataset.atcBusy = '1';
+      atcBtn.setAttribute('disabled', '');
+      if (label) label.textContent = 'Adding…';
+
+      fetch(`/api/product-quick?handle=${encodeURIComponent(handle)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (!data.firstVariantId) throw new Error('no variant');
+          window.dispatchEvent(new CustomEvent('atc:quick', { detail: { variantId: data.firstVariantId } }));
+          if (label) label.textContent = '✓ Added';
+          setTimeout(() => {
+            if (label) label.textContent = 'Add to Cart';
+            delete atcBtn.dataset.atcBusy;
+            atcBtn.removeAttribute('disabled');
+          }, 2000);
+        })
+        .catch(() => {
+          if (label) label.textContent = originalText;
+          delete atcBtn.dataset.atcBusy;
+          atcBtn.removeAttribute('disabled');
+        });
+    });
+
+    // Keyboard activation for the focusable colour swatches.
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const swatchEl = (e.target as Element).closest('.p-swatch[data-swatch-image]') as HTMLElement | null;
+      if (swatchEl) { e.preventDefault(); activateSwatch(swatchEl); }
+    });
+  }
+</script>

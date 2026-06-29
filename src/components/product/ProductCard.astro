@@ -1,0 +1,168 @@
+---
+// Product card — the Aurelis `.product-card` used in related grids
+// and (later) the shop PLP. Links to the PDP. Maps the Shopify
+// ProductCard shape; review/colour-swatch rows are omitted (no
+// such data on the card) and per-card quick-add/wishlist are
+// deferred — the card and its quick actions link to the PDP.
+import type { ProductCard } from '~/lib/shopify/types';
+import { formatMoney, isOnSale, discountPercent } from '~/lib/utils';
+
+interface Props {
+  product: ProductCard;
+}
+
+const { product } = Astro.props;
+const href = `/products/${product.handle}`;
+const img = product.featuredImage;
+const price = product.priceRange.minVariantPrice;
+const compareAt = product.compareAtPriceRange?.minVariantPrice ?? null;
+const onSale = isOnSale(price, compareAt);
+const off = discountPercent(price, compareAt);
+---
+
+<article class="product-card">
+  <div class="pc-media">
+    <a href={href} aria-label={product.title} style="display:block;width:100%;height:100%;">
+      {img && <img class="pc-img-main" src={img.url} alt={img.altText ?? product.title} loading="lazy" />}
+      {img && <img class="pc-img-alt" src={img.url} alt="" loading="lazy" />}
+    </a>
+    <div class="pc-badges">
+      {onSale && off != null && <span class="pc-badge is-disc">-{off}%</span>}
+      {!product.availableForSale && <span class="pc-badge">Sold Out</span>}
+    </div>
+    <div class="pc-side">
+      <button
+        type="button"
+        class="pc-side-btn pc-wish"
+        data-wish-handle={product.handle}
+        data-wish-title={product.title}
+        data-wish-price={formatMoney(price.amount, price.currencyCode)}
+        data-wish-image={img?.url ?? ''}
+        data-wish-variant={product.firstVariantId ?? ''}
+        aria-label="Add to wishlist"
+      >
+        <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="pc-side-btn pc-compare"
+        data-compare-id={product.id}
+        data-compare-handle={product.handle}
+        data-compare-title={product.title}
+        data-compare-price={formatMoney(price.amount, price.currencyCode)}
+        data-compare-image={img?.url ?? ''}
+        data-compare-vendor={product.vendor ?? ''}
+        aria-label="Compare"
+      >
+        <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+        </svg>
+      </button>
+    </div>
+    <div class="pc-quick">
+      <button type="button" class="pc-quick-view" data-qv-handle={product.handle} aria-label={`Quick view ${product.title}`}>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        View
+      </button>
+      <button type="button" class="pc-quick-add" data-atc-id={product.firstVariantId ?? ''} disabled={!product.availableForSale || !product.firstVariantId} aria-label={`Add ${product.title} to cart`}>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Add to Cart
+      </button>
+    </div>
+  </div>
+  <div class="pc-body">
+    {product.vendor && <div class="pc-brand">{product.vendor}</div>}
+    <h3 class="pc-name"><a href={href}>{product.title}</a></h3>
+    <div class="pc-foot">
+      <div class="pc-price-row">
+        <span class="pc-price">{formatMoney(price.amount, price.currencyCode)}</span>
+        {onSale && compareAt && (
+          <span class="pc-price-orig">{formatMoney(compareAt.amount, compareAt.currencyCode)}</span>
+        )}
+      </div>
+      <span class={`pc-stock ${product.availableForSale ? 'in' : 'out'}`}>
+        {product.availableForSale ? 'In Stock' : 'Sold Out'}
+      </span>
+    </div>
+  </div>
+</article>
+
+<script>
+  import { toggleWish, isWished, initWishlist, $wishlist } from '~/stores/wishlist';
+  import { toggleCompare, isCompared, initCompare, $compare } from '~/stores/compare';
+
+  function syncPcWish() {
+    document.querySelectorAll<HTMLButtonElement>('.pc-wish[data-wish-handle]').forEach((btn) => {
+      const on = isWished(btn.dataset.wishHandle!);
+      btn.classList.toggle('is-active', on);
+      const svg = btn.querySelector('svg');
+      if (svg) svg.setAttribute('fill', on ? 'currentColor' : 'none');
+    });
+  }
+
+  function syncPcCompare() {
+    document.querySelectorAll<HTMLButtonElement>('.pc-compare[data-compare-id]').forEach((btn) => {
+      btn.classList.toggle('is-active', isCompared(btn.dataset.compareId!));
+    });
+  }
+
+  initWishlist();
+  initCompare();
+  $wishlist.subscribe(syncPcWish);
+  $compare.subscribe(syncPcCompare);
+
+  // Event delegation — one listener for all cards rendered on the page.
+  // Guard with a flag so multiple card instances don't stack listeners.
+  if (!(window as any).__pcListenersAttached) {
+    (window as any).__pcListenersAttached = true;
+
+    document.addEventListener('click', (e) => {
+      const wishBtn = (e.target as Element).closest<HTMLElement>('.pc-wish[data-wish-handle]');
+      if (wishBtn) {
+        const d = wishBtn.dataset;
+        toggleWish({
+          handle: d.wishHandle!,
+          title: d.wishTitle!,
+          price: d.wishPrice!,
+          image: d.wishImage || null,
+          variantId: d.wishVariant || null,
+        });
+        return;
+      }
+
+      const cmpBtn = (e.target as Element).closest<HTMLElement>('.pc-compare[data-compare-id]');
+      if (cmpBtn) {
+        const d = cmpBtn.dataset;
+        toggleCompare({
+          id: d.compareId!,
+          handle: d.compareHandle!,
+          title: d.compareTitle!,
+          price: d.comparePrice!,
+          image: d.compareImage || null,
+          vendor: d.compareVendor || null,
+        });
+        return;
+      }
+
+      const viewBtn = (e.target as Element).closest<HTMLElement>('[data-qv-handle]');
+      if (viewBtn) {
+        const handle = viewBtn.dataset.qvHandle;
+        if (handle) window.dispatchEvent(new CustomEvent('qv:open', { detail: { handle } }));
+        return;
+      }
+
+      const atcBtn = (e.target as Element).closest<HTMLElement>('[data-atc-id]');
+      if (atcBtn && !atcBtn.hasAttribute('disabled')) {
+        const variantId = atcBtn.dataset.atcId;
+        if (variantId) window.dispatchEvent(new CustomEvent('atc:quick', { detail: { variantId } }));
+      }
+    });
+  }
+</script>

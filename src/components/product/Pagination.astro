@@ -1,0 +1,38 @@
+---
+// Cursor pagination — Prev / Next links styled with the Aurelis
+// `.shop-pagination` block. (The design's "Load More" is adapted to
+// SSR prev/next so it works without client-side state.)
+interface Props {
+  prevUrl: string | null;
+  nextUrl: string | null;
+  shown: number;
+}
+
+const { prevUrl, nextUrl, shown } = Astro.props;
+---
+
+{(prevUrl || nextUrl) && (
+  <div class="shop-pagination">
+    <div class="pagination-progress-text">
+      Showing <strong>{shown}</strong> {shown === 1 ? 'product' : 'products'} on this page
+    </div>
+    <div style="display:flex;gap:12px;">
+      {prevUrl ? (
+        <a class="load-more-btn" href={prevUrl}>
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(90deg);">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+          Previous
+        </a>
+      ) : null}
+      {nextUrl ? (
+        <a class="load-more-btn" href={nextUrl}>
+          Next
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(-90deg);">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </a>
+      ) : null}
+    </div>
+  </div>
+)}

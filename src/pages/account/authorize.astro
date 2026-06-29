@@ -1,0 +1,53 @@
+---
+// OAuth callback: validate state, exchange the code for tokens,
+// store the session, then land on the account dashboard.
+import {
+  isCustomerAuthConfigured,
+  getPkce,
+  clearPkce,
+  setSession,
+  exchangeCodeForToken,
+  getRedirectUri,
+  getOrigin,
+  CALLBACK_PATH,
+} from '~/lib/shopify/customer';
+
+const url = Astro.url;
+const code = url.searchParams.get('code');
+const returnedState = url.searchParams.get('state');
+const oauthError = url.searchParams.get('error');
+
+const fail = (reason: string) => {
+  console.error('[account/authorize]', reason);
+  clearPkce(Astro.cookies);
+  return Astro.redirect('/account/login?error=auth', 302);
+};
+
+if (!isCustomerAuthConfigured) return Astro.redirect('/account/login', 302);
+if (oauthError) return fail(`provider error: ${oauthError}`);
+if (!code) return fail('missing authorization code');
+
+const { verifier, state } = getPkce(Astro.cookies);
+if (!verifier || !state) return fail('missing PKCE/session cookies');
+if (!returnedState || returnedState !== state) return fail('state mismatch (possible CSRF)');
+
+try {
+  const redirectUri = getRedirectUri(Astro, CALLBACK_PATH);
+  const tokens = await exchangeCodeForToken({
+    code,
+    redirectUri,
+    verifier,
+    origin: getOrigin(Astro),
+  });
+  setSession(Astro.cookies, {
+    accessToken: tokens.access_token,
+    idToken: tokens.id_token,
+    refreshToken: tokens.refresh_token,
+    expiresIn: tokens.expires_in,
+  });
+  clearPkce(Astro.cookies);
+  return Astro.redirect('/account', 302);
+} catch (err) {
+  return fail((err as Error).message);
+}
+---

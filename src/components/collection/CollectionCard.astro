@@ -1,0 +1,109 @@
+---
+// Collection card for the collections index. No 1:1 design source in
+// the Aurelis pages, so this is a tasteful, token-consistent card
+// (image + gold-accented title) with scoped styles.
+import type { Collection } from '~/lib/shopify/types';
+
+interface Props {
+  collection: Collection;
+}
+
+const { collection } = Astro.props;
+const href = `/collections/${collection.handle}`;
+---
+
+<a class="collection-card" href={href} aria-label={collection.title}>
+  <div class="cc-media">
+    {collection.image && (
+      <img src={collection.image.url} alt={collection.image.altText ?? collection.title} loading="lazy" />
+    )}
+    <div class="cc-overlay"></div>
+  </div>
+  <div class="cc-body">
+    <h3 class="cc-title">{collection.title}</h3>
+    <span class="cc-cta">
+      Explore
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
+    </span>
+  </div>
+</a>
+
+<style>
+  .collection-card {
+    position: relative;
+    display: block;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: var(--graphite);
+    aspect-ratio: 4 / 5;
+    box-shadow: var(--shadow-card);
+    transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base) var(--ease-out);
+  }
+
+  .collection-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  .cc-media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .cc-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--t-slow) var(--ease-out);
+  }
+
+  .collection-card:hover .cc-media img {
+    transform: scale(1.06);
+  }
+
+  .cc-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(7, 8, 12, 0.05) 0%, rgba(7, 8, 12, 0.78) 100%);
+  }
+
+  .cc-body {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cc-title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: -0.02em;
+  }
+
+  .cc-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .cc-cta svg {
+    width: 15px;
+    height: 15px;
+    transition: transform var(--t-base) var(--ease-out);
+  }
+
+  .collection-card:hover .cc-cta svg {
+    transform: translateX(4px);
+  }
+</style>

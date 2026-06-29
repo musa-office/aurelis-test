@@ -1,0 +1,241 @@
+---
+// ============================================================
+//  Contact — form + info + departments + map. Form is a client-side
+//  stub (validation + success state; no backend). Reuses FAQ /
+//  Newsletter. Verbatim markup from contact.html (paths/links fixed).
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Faq from '~/components/home/Faq.astro';
+import Newsletter from '~/components/home/Newsletter.astro';
+import '~/styles/pages/contact.css';
+
+const ERR = '<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+const depts = [
+  { name: 'Sales & Orders', desc: 'Pre-purchase advice, availability, and order tracking from our product team.', email: 'sales@omnix.com', icon: 'M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0' },
+  { name: 'Technical Support', desc: 'Setup, troubleshooting, warranty claims and repairs handled by experts.', email: 'support@omnix.com', icon: 'M12 2a10 10 0 00-10 10 10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zM9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01' },
+  { name: 'Press & Media', desc: 'Media kits, interviews, partnership and brand collaboration requests.', email: 'press@omnix.com', icon: 'M3 11l19-9-9 19-2-8-8-2z' },
+  { name: 'Business & Concierge', desc: 'Corporate orders, bespoke gifting and white-glove personal shopping.', email: 'concierge@omnix.com', icon: 'M20 7h-9M14 17H5M17 17a3 3 0 100-6 3 3 0 000 6zM7 13a3 3 0 100-6 3 3 0 000 6z' },
+];
+const boutiques = [
+  ['New York', 'Aurelis Madison', '512 Madison Avenue, NY 10022', 'Mon–Sat 10–8 · Sun 12–6'],
+  ['London', 'Aurelis Mayfair', '18 New Bond Street, London W1S', 'Mon–Sat 10–7 · Sun closed'],
+  ['Dubai', 'Aurelis DIFC', 'Gate Village 7, DIFC, Dubai', 'Daily 10–10'],
+];
+---
+
+<BaseLayout title="Contact" description="Reach the Aurelis concierge team.">
+  <section class="contact-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a><span class="crumb-sep">/</span><span class="current">Contact</span>
+      </nav>
+      <h1 class="ch-title">Let's start a <span class="t-gold">conversation</span></h1>
+      <p class="ch-sub">Questions about a product, an order, or a bespoke recommendation? Our concierge team replies within hours — with care.</p>
+    </div>
+  </section>
+
+  <section class="contact-main">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="cc-head" id="cc-form-head">
+            <div class="cc-eyebrow">Send a message</div>
+            <h2 class="cc-title">How can we assist you?</h2>
+            <p class="cc-sub">Fill in the form below and the right specialist will get back to you personally.</p>
+          </div>
+          <div class="cc-body" id="cc-form-body">
+            <form id="contact-form" novalidate>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="c-fname">First name</label>
+                  <input type="text" class="form-input" id="c-fname" placeholder="First name" autocomplete="given-name" required />
+                  <span class="form-error" set:html={ERR + '<span class="err-text">Required</span>'}></span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="c-lname">Last name</label>
+                  <input type="text" class="form-input" id="c-lname" placeholder="Last name" autocomplete="family-name" required />
+                  <span class="form-error" set:html={ERR + '<span class="err-text">Required</span>'}></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="c-email">Email</label>
+                  <input type="email" class="form-input" id="c-email" placeholder="you@example.com" autocomplete="email" required />
+                  <span class="form-error" set:html={ERR + '<span class="err-text">Enter a valid email</span>'}></span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="c-phone">Phone <span class="opt">(optional)</span></label>
+                  <input type="tel" class="form-input" id="c-phone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="c-topic">Topic</label>
+                  <select class="form-select" id="c-topic" required>
+                    <option value="">Select a topic…</option>
+                    <option>Product question</option>
+                    <option>Order &amp; delivery</option>
+                    <option>Returns &amp; warranty</option>
+                    <option>Bespoke / concierge advice</option>
+                    <option>Press &amp; media</option>
+                    <option>Business &amp; enterprise</option>
+                    <option>Other</option>
+                  </select>
+                  <span class="form-error" set:html={ERR + '<span class="err-text">Please choose a topic</span>'}></span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="c-order">Order number <span class="opt">(optional)</span></label>
+                  <input type="text" class="form-input" id="c-order" placeholder="#OMX-000000" />
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="form-group">
+                  <label class="form-label" for="c-message">Message</label>
+                  <textarea class="form-textarea" id="c-message" placeholder="Tell us how we can help…" required></textarea>
+                  <span class="form-error" set:html={ERR + '<span class="err-text">Please enter a message</span>'}></span>
+                </div>
+              </div>
+              <label class="form-check">
+                <input type="checkbox" id="c-consent" required />
+                <span class="check-box"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg></span>
+                <span>I agree to Aurelis processing my details in line with the <a href="/pages/privacy">Privacy Policy</a>.</span>
+              </label>
+              <button type="submit" class="cf-submit" id="cf-submit">
+                <span class="cf-spinner"></span>
+                <span class="cf-label">Send Message</span>
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+              </button>
+            </form>
+          </div>
+
+          <div class="cf-success" id="cf-success">
+            <div class="cf-success-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div>
+            <h3>Message sent — thank you</h3>
+            <p>Your message is on its way to our concierge team. We'll reply to <b id="cf-success-email">your inbox</b> within a few hours.</p>
+            <button class="cf-success-btn" id="cf-reset">Send another message</button>
+          </div>
+        </div>
+
+        <div class="info-stack">
+          <div class="info-card">
+            <div class="info-icon"><svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg></div>
+            <div><div class="info-card-label">Flagship Boutique</div><div class="info-card-value">512 Madison Avenue, New York, NY 10022</div><div class="info-card-meta">Mon–Sat · 10am – 8pm</div></div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z" /></svg></div>
+            <div><div class="info-card-label">Call us</div><div class="info-card-value"><a href="tel:+18005550100">+1 (800) 555-0100</a></div><div class="info-card-meta">Concierge line · 24 / 7</div></div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 6l-10 7L2 6" /></svg></div>
+            <div><div class="info-card-label">Email us</div><div class="info-card-value"><a href="mailto:concierge@omnix.com">concierge@omnix.com</a></div><div class="info-card-meta">Replies within 2 hours</div></div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg></div>
+            <div><div class="info-card-label">Live chat</div><div class="info-card-value"><a href="#">Start a live chat</a></div><div class="info-card-meta">Avg. wait under 30 seconds</div></div>
+          </div>
+          <div class="info-social">
+            <a href="#" class="info-social-btn" aria-label="X / Twitter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg></a>
+            <a href="#" class="info-social-btn" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg></a>
+            <a href="#" class="info-social-btn" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg></a>
+            <a href="#" class="info-social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-depts">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-eyebrow"><span class="section-eyebrow-line"></span><span class="section-eyebrow-text">Direct Channels</span><span class="section-eyebrow-line"></span></div>
+        <h2 class="section-title">Reach the right team</h2>
+        <p class="section-sub">Every enquiry is routed to a dedicated specialist — choose the department that fits and skip the queue.</p>
+      </div>
+      <div class="dept-grid">
+        {depts.map((d) => (
+          <div class="dept-card">
+            <div class="dept-icon"><svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d={d.icon} /></svg></div>
+            <div class="dept-name">{d.name}</div>
+            <p class="dept-desc">{d.desc}</p>
+            <a href={`mailto:${d.email}`} class="dept-link">{d.email} <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-map">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-eyebrow"><span class="section-eyebrow-line"></span><span class="section-eyebrow-text">Visit Us</span><span class="section-eyebrow-line"></span></div>
+        <h2 class="section-title">Experience Aurelis in person</h2>
+        <p class="section-sub">Step into one of our flagship boutiques for private demos, expert fittings, and the full Aurelis experience.</p>
+      </div>
+      <div class="map-wrap">
+        <iframe src="https://www.google.com/maps?q=Madison+Avenue,+New+York,+NY&output=embed" title="Aurelis flagship boutique map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <div class="map-card">
+          <div class="map-card-eyebrow">New York Flagship</div>
+          <h3>Aurelis Madison</h3>
+          <p>512 Madison Avenue<br />New York, NY 10022<br />United States</p>
+          <p style="color:var(--carbon); font-weight:500;">Mon–Sat 10am–8pm · Sun 12pm–6pm</p>
+          <a href="https://www.google.com/maps?q=Madison+Avenue,+New+York,+NY" target="_blank" rel="noopener" class="map-card-dir">Get directions <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10" /></svg></a>
+        </div>
+      </div>
+      <div class="boutique-grid">
+        {boutiques.map(([flag, name, addr, hours]) => (
+          <div class="boutique-card">
+            <div class="boutique-flag">{flag}</div>
+            <h4>{name}</h4>
+            <p>{addr}</p>
+            <div class="b-hours">{hours}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Faq />
+  <Newsletter />
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  if (form) {
+    const required = ['c-fname', 'c-lname', 'c-email', 'c-topic', 'c-message'];
+    const markError = (el: HTMLElement | null, on: boolean) => el?.closest('.form-group')?.classList.toggle('is-error', on);
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let ok = true;
+      required.forEach((id) => {
+        const el = document.getElementById(id) as HTMLInputElement | null;
+        const invalid = !el || !el.value.trim() || (id === 'c-email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value));
+        markError(el, invalid);
+        if (invalid) ok = false;
+      });
+      const consent = document.getElementById('c-consent') as HTMLInputElement | null;
+      if (!consent?.checked) ok = false;
+      if (!ok) return;
+
+      const btn = document.getElementById('cf-submit');
+      btn?.classList.add('is-loading');
+      setTimeout(() => {
+        const email = (document.getElementById('c-email') as HTMLInputElement)?.value || 'your inbox';
+        const se = document.getElementById('cf-success-email');
+        if (se) se.textContent = email;
+        document.getElementById('cc-form-head')?.style.setProperty('display', 'none');
+        document.getElementById('cc-form-body')?.style.setProperty('display', 'none');
+        document.getElementById('cf-success')?.classList.add('show');
+        btn?.classList.remove('is-loading');
+      }, 700);
+    });
+
+    document.getElementById('cf-reset')?.addEventListener('click', () => {
+      form.reset();
+      document.querySelectorAll('.form-group.is-error').forEach((g) => g.classList.remove('is-error'));
+      document.getElementById('cf-success')?.classList.remove('show');
+      document.getElementById('cc-form-head')?.style.removeProperty('display');
+      document.getElementById('cc-form-body')?.style.removeProperty('display');
+    });
+  }
+</script>

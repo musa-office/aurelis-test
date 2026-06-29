@@ -1,0 +1,493 @@
+/* ============================================================
+   PRODUCT GRID + CARD — shared (shop, collection, PDP related,
+   search, home rails). Verbatim from Aurelis shop.html. Imported
+   globally in BaseLayout.
+============================================================ */
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .shop-layout.filters-hidden .product-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .product-grid.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .product-grid.cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .product-grid.cols-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .product-grid.is-list {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    /* Card */
+    .product-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color var(--t-base) ease, box-shadow var(--t-base) ease, transform var(--t-base) ease;
+      position: relative;
+    }
+
+    .product-card:hover {
+      border-color: transparent;
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .pc-media {
+      position: relative;
+      aspect-ratio: 4 / 4;
+      background: var(--soft-bg);
+      overflow: hidden;
+    }
+
+    .pc-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity var(--t-slow) ease, transform 600ms var(--ease-out);
+    }
+
+    .pc-media img.pc-img-alt {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+    }
+
+    .product-card:hover .pc-img-main {
+      opacity: 0;
+    }
+
+    .product-card:hover .pc-img-alt {
+      opacity: 1;
+      transform: scale(1.04);
+    }
+
+    /* Badges */
+    .pc-badges {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 2;
+    }
+
+    .pc-badge {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1;
+      background: var(--white);
+      color: var(--carbon);
+    }
+
+    .pc-badge.is-new {
+      background: var(--obsidian);
+      color: var(--gold);
+    }
+
+    .pc-badge.is-sale {
+      background: #B6432F;
+      color: var(--white);
+    }
+
+    .pc-badge.is-best {
+      background: var(--gold);
+      color: var(--obsidian);
+    }
+
+    .pc-badge.is-disc {
+      background: var(--obsidian);
+      color: var(--white);
+    }
+
+    /* Side actions — top-right, fade down on hover (Luxury pattern) */
+    .pc-side {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 5;
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: opacity var(--t-base) ease, transform var(--t-base) var(--ease-out);
+    }
+
+    .product-card:hover .pc-side {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .pc-side-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--white);
+      border: 1px solid var(--platinum);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--carbon);
+      transition: all var(--t-base) ease;
+    }
+
+    .pc-side-btn:hover {
+      background: var(--obsidian);
+      color: var(--white);
+      border-color: var(--obsidian);
+    }
+
+    .pc-side-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .pc-side-btn.is-active {
+      background: var(--gold);
+      color: var(--obsidian);
+      border-color: var(--gold);
+    }
+
+    .pc-side-btn.is-active svg {
+      fill: currentColor;
+    }
+
+    /* Hover overlay — dark blurred wash with two action buttons */
+    .pc-quick {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 8, 12, 0.42);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px 14px;
+      opacity: 0;
+      transition: opacity var(--t-base) ease;
+      z-index: 4;
+    }
+
+    .product-card:hover .pc-quick {
+      opacity: 1;
+    }
+
+    .pc-quick-view,
+    .pc-quick-add {
+      flex: 0 0 120px;
+      width: 120px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--r-md);
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+      transform: translateY(8px);
+      transition: transform var(--t-base) var(--ease-out), background var(--t-fast) ease, color var(--t-fast) ease;
+    }
+
+    .product-card:hover .pc-quick-view,
+    .product-card:hover .pc-quick-add {
+      transform: translateY(0);
+    }
+
+    .pc-quick-view {
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--carbon);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .pc-quick-view:hover {
+      background: var(--white);
+    }
+
+    .pc-quick-add {
+      background: var(--gold);
+      color: var(--obsidian);
+      border: 1px solid var(--gold);
+    }
+
+    .pc-quick-add:hover {
+      background: var(--gold-hover);
+    }
+
+    .pc-quick-add:disabled {
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--taupe);
+      border-color: transparent;
+      cursor: not-allowed;
+    }
+
+    .pc-quick-view svg,
+    .pc-quick-add svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    /* Body */
+    .pc-body {
+      padding: 16px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .pc-brand {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--taupe);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .pc-name {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--carbon);
+      line-height: 1.3;
+      letter-spacing: -0.005em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Color swatch row */
+    .pc-colors {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .pc-color-sw {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid var(--white);
+      box-shadow: 0 0 0 1px var(--line-strong);
+    }
+
+    .pc-color-more {
+      font-size: 10.5px;
+      color: var(--taupe);
+      font-weight: 600;
+      margin-left: 4px;
+    }
+
+    .pc-rating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--taupe);
+      margin-top: auto;
+    }
+
+    .pc-rating .stars {
+      color: var(--gold);
+      letter-spacing: 1px;
+      font-size: 12px;
+    }
+
+    .pc-rating b {
+      color: var(--carbon);
+      font-weight: 700;
+      margin-right: 2px;
+    }
+
+    .pc-foot {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .pc-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .pc-price {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--carbon);
+      letter-spacing: -0.01em;
+    }
+
+    .pc-price-orig {
+      font-size: 13px;
+      color: var(--taupe);
+      text-decoration: line-through;
+      font-weight: 500;
+    }
+
+    .pc-stock {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .pc-stock.in {
+      color: #2D7A4A;
+    }
+
+    .pc-stock.low {
+      color: #B6432F;
+    }
+
+    /* List view */
+    .product-grid.is-list .product-card {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 0;
+    }
+
+    .product-grid.is-list .pc-media {
+      aspect-ratio: 1 / 1;
+    }
+
+    .product-grid.is-list .pc-body {
+      padding: 22px 26px;
+      justify-content: space-between;
+    }
+
+    /* Hide hover overlay in list view — actions go into pc-list-actions instead */
+    .product-grid.is-list .pc-quick {
+      display: none;
+    }
+
+    /* List-only action buttons — always visible */
+    .pc-list-actions {
+      display: none;
+    }
+
+    .product-grid.is-list .pc-list-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .product-grid.is-list .pc-list-actions .pc-quick-view,
+    .product-grid.is-list .pc-list-actions .pc-quick-add {
+      flex: 1;
+      width: auto;
+      height: 42px;
+      transform: none;
+      transition: background var(--t-fast) ease, color var(--t-fast) ease, border-color var(--t-fast) ease;
+    }
+
+    .product-grid.is-list .pc-list-actions .pc-quick-view {
+      background: var(--white);
+      color: var(--carbon);
+      border: 1px solid var(--line-strong);
+    }
+
+    .product-grid.is-list .pc-list-actions .pc-quick-view:hover {
+      border-color: var(--carbon);
+    }
+
+    .product-grid.is-list .pc-list-actions .pc-quick-add {
+      background: var(--gold);
+      color: var(--obsidian);
+      border: 1px solid var(--gold);
+    }
+
+    .product-grid.is-list .pc-list-actions .pc-quick-add:hover {
+      background: var(--gold-hover);
+    }
+
+    .product-grid.is-list .pc-list-actions .pc-quick-add:disabled {
+      background: var(--soft-bg);
+      color: var(--taupe);
+      border-color: transparent;
+      cursor: not-allowed;
+    }
+
+    /* 2-column list when sidebar is hidden */
+    .shop-layout.filters-hidden .product-grid.is-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+
+/* ---- related-grid container (PDP) ---- */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+/* ============================================================
+   MOBILE RESPONSIVE — product card grid  ≤ 768px
+   ============================================================ */
+@media (max-width: 768px) {
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .shop-layout.filters-hidden .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product-grid.cols-3,
+  .product-grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Card body — tighter padding + smaller price */
+  .pc-body { padding: 10px 12px 12px; gap: 5px; }
+  .pc-price { font-size: 15px; }
+  .pc-foot { flex-wrap: wrap; gap: 4px; }
+  .pc-stock { font-size: 10px; }
+  .pc-name { font-size: 13px; }
+  .pc-brand { font-size: 9px; }
+
+  /* Quick actions — stack the View + Add-to-Cart buttons full-width so they
+     fit the narrow 2-column card. They were fixed 120px each in a row, which
+     overflowed a ~160px card and clipped both buttons. transform:none drops
+     the desktop slide-up since there's no hover transition to slide from. */
+  .pc-quick { flex-direction: column; justify-content: flex-end; gap: 6px; padding: 10px; }
+  .pc-quick-view,
+  .pc-quick-add { flex: none; width: 100%; height: 36px; transform: none; }
+
+  /* List view → full-width single column on mobile */
+  .product-grid.is-list .product-card { grid-template-columns: 90px 1fr; }
+  .product-grid.is-list .pc-media { aspect-ratio: 1 / 1; min-height: unset; }
+  .shop-layout.filters-hidden .product-grid.is-list { grid-template-columns: 1fr; }
+
+  /* Related/recommendations grid */
+  .related-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .product-grid.is-list .product-card { grid-template-columns: 80px 1fr; }
+}

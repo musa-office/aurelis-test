@@ -1,0 +1,28 @@
+---
+// Promotional banners — three editorial cards (static content, links
+// into the catalogue). Verbatim markup/classes from the Aurelis design.
+const banners = [
+  { img: '/images/mp3k7l9f-Rectangle-1.jpg', tag: 'Up to 25% Off', title: 'AI Controlled Room Heater', sub: 'Keep your space perfectly warm<br>with smart AI climate control.', href: '/products' },
+  { img: '/images/mp3k7l9k-Rectangle-2.jpg', tag: 'New Arrivals', title: 'SmartVac Series', sub: 'Effortless cleaning with smart,<br>powerful suction technology.', href: '/products?sort=newest' },
+  { img: '/images/mp3k7l9q-Rectangle-3.jpg', tag: 'Limited Edition', title: 'Luxury Audio', sub: 'Headphones &amp; earbuds engineered<br>for the discerning ear.', href: '/products' },
+];
+---
+
+<section class="section-promo-banner" aria-label="Promotional banners">
+  <div class="container">
+    <div class="promo-banner-grid">
+      {banners.map((b) => (
+        <a href={b.href} class="promo-banner-card">
+          <img src={b.img} alt={b.title} loading="lazy" />
+          <div class="promo-banner-overlay"></div>
+          <div class="promo-banner-content">
+            <span class="promo-banner-tag">{b.tag}</span>
+            <h3 class="promo-banner-title">{b.title}</h3>
+            <p class="promo-banner-sub" set:html={b.sub}></p>
+            <span class="promo-banner-cta">Shop collection</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

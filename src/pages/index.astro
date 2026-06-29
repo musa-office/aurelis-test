@@ -1,0 +1,143 @@
+---
+// ============================================================
+//  Home — Aurelis luxury landing page. Commerce rails wired to live
+//  Shopify data; hero + editorial sections faithful to the design.
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Hero from '~/components/home/Hero.astro';
+import ProductTicker from '~/components/home/ProductTicker.astro';
+import Categories from '~/components/home/Categories.astro';
+import FeaturedProducts from '~/components/home/FeaturedProducts.astro';
+import Spotlight from '~/components/home/Spotlight.astro';
+import Deals from '~/components/home/Deals.astro';
+import ScrollFeatures from '~/components/home/ScrollFeatures.astro';
+import PromoBanner from '~/components/home/PromoBanner.astro';
+import Lifestyle from '~/components/home/Lifestyle.astro';
+import Trust from '~/components/home/Trust.astro';
+import Reviews from '~/components/home/Reviews.astro';
+import Partners from '~/components/home/Partners.astro';
+import Blog from '~/components/home/Blog.astro';
+import Faq from '~/components/home/Faq.astro';
+import Instagram from '~/components/home/Instagram.astro';
+import Newsletter from '~/components/home/Newsletter.astro';
+import { getProducts, getAllCollections, getProduct, getBlogArticles } from '~/lib/shopify';
+import type { BlogArticle, Collection, Product, ProductCard } from '~/lib/shopify/types';
+import { HOME_CATEGORY_HANDLES, SPOTLIGHT_HANDLE, BUNDLE_CONFIGS, BLOG_HANDLE } from '~/config/site';
+import '~/styles/pages/home.css';
+
+let collections: Collection[] = [];
+let featured: ProductCard[] = [];
+let newest: ProductCard[] = [];
+let spotlightProduct: Product | null = null;
+let blogArticles: BlogArticle[] = [];
+
+try {
+  const all = await getAllCollections();
+  // Pin to store-specific handles in the defined order; skip missing ones.
+  const byHandle = new Map(all.map((c) => [c.handle, c]));
+  collections = HOME_CATEGORY_HANDLES.flatMap((h) => {
+    const c = byHandle.get(h);
+    return c ? [c] : [];
+  });
+} catch (err) {
+  console.error('[home] collections failed:', (err as Error).message);
+}
+try {
+  featured = (await getProducts({ pageSize: 12, sortKey: 'BEST_SELLING' })).items;
+} catch (err) {
+  console.error('[home] featured failed:', (err as Error).message);
+}
+try {
+  newest = (await getProducts({ pageSize: 8, sortKey: 'CREATED_AT', reverse: true })).items;
+} catch (err) {
+  console.error('[home] new arrivals failed:', (err as Error).message);
+}
+try {
+  const handle = SPOTLIGHT_HANDLE || featured[0]?.handle;
+  if (handle) spotlightProduct = await getProduct(handle);
+} catch (err) {
+  console.error('[home] spotlight failed:', (err as Error).message);
+}
+if (BLOG_HANDLE) {
+  blogArticles = await getBlogArticles(BLOG_HANDLE, 3);
+}
+
+interface DealItem { name: string; sub: string; price: number; img: string; handle: string; variantId: string | null; }
+interface DealBundle { id: string; name: string; img: string; discount: number; badge: string | null; tag: string; items: DealItem[]; }
+
+let resolvedBundles: DealBundle[] = [];
+try {
+  const settled = await Promise.all(
+    BUNDLE_CONFIGS.map(async (cfg, i) => {
+      let items: DealItem[];
+
+      if (cfg.productHandles.length > 0) {
+        // Configured: fetch real products by handle
+        const products = (
+          await Promise.all(
+            cfg.productHandles.map(async (h) => {
+              try { return await getProduct(h); } catch { return null; }
+            }),
+          )
+        ).filter((p): p is Product => p !== null);
+        if (!products.length) return null;
+        items = products.map((p) => ({
+          name: p.title,
+          sub: p.variants[0]?.title !== 'Default Title' ? (p.variants[0]?.title ?? '') : (p.vendor ?? ''),
+          price: Number(p.priceRange.minVariantPrice.amount),
+          img: p.featuredImage?.url ?? '',
+          handle: p.handle,
+          variantId: p.variants[0]?.id ?? null,
+        }));
+      } else {
+        // Auto-fill: take 3 best-sellers per bundle slot (bundle 0 → 0-2, bundle 1 → 3-5, bundle 2 → 6-8)
+        const slice = featured.slice(i * 3, i * 3 + 3);
+        if (!slice.length) return null;
+        items = slice.map((p) => ({
+          name: p.title,
+          sub: p.vendor ?? '',
+          price: Number(p.priceRange.minVariantPrice.amount),
+          img: p.featuredImage?.url ?? '',
+          handle: p.handle,
+          variantId: p.firstVariantId ?? null,
+        }));
+      }
+
+      return {
+        id: cfg.id,
+        name: cfg.name,
+        // Banner: configured hero image, else the first bundle item that
+        // actually has an image (some products, e.g. protection plans, have none).
+        img: cfg.heroImage || items.find((it) => it.img)?.img || '',
+        discount: cfg.discount,
+        badge: cfg.badge,
+        tag: cfg.tag,
+        items,
+      } as DealBundle;
+    }),
+  );
+  resolvedBundles = settled.filter((b): b is DealBundle => b !== null);
+} catch (err) {
+  console.error('[home] bundles failed:', (err as Error).message);
+}
+---
+
+<BaseLayout>
+  <Hero />
+  <ProductTicker />
+  <Categories collections={collections} />
+  <FeaturedProducts products={featured} eyebrow="Curated Selection" title="Featured Products" />
+  <Spotlight product={spotlightProduct} />
+  <Deals bundles={resolvedBundles} />
+  <ScrollFeatures />
+  <PromoBanner />
+  <FeaturedProducts products={newest} eyebrow="Just Landed" title="New Arrivals" bg="var(--ivory)" />
+  <Lifestyle products={featured} />
+  <Trust />
+  <Reviews />
+  <Partners />
+  <Blog articles={blogArticles} />
+  <Faq />
+  <Instagram />
+  <Newsletter />
+</BaseLayout>

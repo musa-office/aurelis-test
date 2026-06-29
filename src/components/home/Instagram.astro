@@ -1,0 +1,22 @@
+---
+// Instagram strip — static editorial tiles using local imagery.
+const tiles = [
+  { img: '/images/mpao5u00-insta-01.jpg', alt: 'Aurelis lifestyle — headphones' },
+  { img: '/images/mpao5u01-insta-02.jpg', alt: 'Aurelis lifestyle — laptop' },
+  { img: '/images/mpao5u04-insta-03.jpg', alt: 'Aurelis lifestyle — smartwatch' },
+  { img: '/images/mpao5u04-insta-04.jpg', alt: 'Aurelis lifestyle — phone' },
+  { img: '/images/mpao5u04-insta-05.jpg', alt: 'Aurelis lifestyle — wearable' },
+];
+---
+
+<section class="section-instagram">
+  <div class="ig-header">
+    <p class="ig-eyebrow">Aurelis Store</p>
+    <h3 class="ig-title">@omnixstore</h3>
+  </div>
+  <div class="ig-strip">
+    {tiles.map((t) => (
+      <a href="#" class="ig-tile"><img src={t.img} alt={t.alt} loading="lazy" /></a>
+    ))}
+  </div>
+</section>

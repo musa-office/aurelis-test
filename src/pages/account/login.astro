@@ -1,0 +1,46 @@
+---
+// Start the Customer Account OAuth flow: persist PKCE values, then
+// redirect to Shopify's hosted login. Degrades to an informational
+// page when the Customer Account API isn't configured yet.
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import {
+  isCustomerAuthConfigured,
+  isLoggedIn,
+  setPkce,
+  buildAuthorizeUrl,
+  getRedirectUri,
+  CALLBACK_PATH,
+} from '~/lib/shopify/customer';
+
+// Already signed in? Go to the account dashboard.
+if (isCustomerAuthConfigured && isLoggedIn(Astro.cookies)) {
+  return Astro.redirect('/account', 302);
+}
+
+let configError = !isCustomerAuthConfigured;
+
+if (!configError) {
+  try {
+    const redirectUri = getRedirectUri(Astro, CALLBACK_PATH);
+    const { url, verifier, state } = await buildAuthorizeUrl(redirectUri);
+    setPkce(Astro.cookies, verifier, state);
+    return Astro.redirect(url, 302);
+  } catch (err) {
+    console.error('[account/login] failed to start OAuth:', (err as Error).message);
+    configError = true;
+  }
+}
+---
+
+<BaseLayout title="Sign In">
+  <section class="container" style="padding:120px 0;max-width:640px;text-align:center;">
+    <h1 class="pi-title" style="margin-bottom:14px;">Sign in is not available yet</h1>
+    <p style="color:var(--taupe);margin-bottom:18px;line-height:1.7;">
+      Customer accounts require Shopify's Customer Account API to be configured. Add
+      <code>CUSTOMER_ACCOUNT_API_CLIENT_ID</code> and <code>SHOPIFY_SHOP_ID</code> to your
+      environment (and run the storefront over HTTPS), then this page will redirect to
+      secure Shopify sign-in.
+    </p>
+    <a href="/" class="btn-dark">Back to shop</a>
+  </section>
+</BaseLayout>

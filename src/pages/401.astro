@@ -1,0 +1,61 @@
+---
+// 401 Unauthorized — on-brand restricted-access page.
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+Astro.response.status = 401;
+---
+
+<BaseLayout title="Access restricted" description="You need to be signed in to view this page.">
+  <section class="nf-wrap">
+    <span class="eyebrow">
+      <span class="eyebrow-line"></span>
+      <span class="eyebrow-text">Error 401</span>
+    </span>
+    <h1 class="nf-code">401</h1>
+    <h2 class="nf-title">Members only, beyond this point</h2>
+    <p class="nf-sub">This page is reserved for signed-in members. Sign in to continue, or head back to explore the collection.</p>
+    <div class="nf-actions">
+      <a href="/account/login" class="btn-dark">Sign in</a>
+      <a href="/" class="btn-dark-outline">Back to home</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf-wrap {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 16px;
+    padding: 100px 30px;
+  }
+  .nf-code {
+    font-family: var(--font-heading);
+    font-size: clamp(96px, 18vw, 200px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--obsidian);
+  }
+  .nf-title {
+    font-family: var(--font-heading);
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .nf-sub {
+    max-width: 460px;
+    color: var(--taupe);
+    font-size: 15px;
+  }
+  .nf-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 12px;
+  }
+</style>

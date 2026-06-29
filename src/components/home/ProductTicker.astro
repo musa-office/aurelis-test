@@ -1,0 +1,31 @@
+---
+// Product ticker — seamless scrolling marquee of product names + thumbnails
+// under the hero (decorative). Items duplicated for infinite loop.
+const items = [
+  { name: 'SoundMax Pro X',   img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=60&q=80&fit=crop' },
+  { name: 'ProBook Ultra X1', img: 'https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=60&q=80&fit=crop' },
+  { name: 'ChronoX Elite',    img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=60&q=80&fit=crop' },
+  { name: 'NovaPulse S25 Pro',img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=60&q=80&fit=crop' },
+  { name: 'AuraView 4K Pro',  img: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=60&q=80&fit=crop' },
+  { name: 'BeatCore Speaker', img: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=60&q=80&fit=crop' },
+  { name: 'TitanBook Air',    img: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=60&q=80&fit=crop' },
+  { name: 'FrostBeat Mini',   img: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=60&q=80&fit=crop' },
+];
+const loop = [...items, ...items];
+---
+
+<div class="product-ticker" aria-hidden="true">
+  <div class="ticker-track">
+    {loop.map((item) => (
+      <>
+        <div class="ticker-item">
+          <div class="ticker-thumb">
+            <img src={item.img} alt="" loading="lazy" width="60" height="60" />
+          </div>
+          <span class="ticker-name">{item.name}</span>
+        </div>
+        <span class="ticker-sep"></span>
+      </>
+    ))}
+  </div>
+</div>

@@ -1,0 +1,81 @@
+---
+// Customer reviews — static testimonials (editorial). Avatar imagery
+// uses the design's external placeholders.
+const cards = [
+  { stars: '★★★★★', source: 'Trustpilot', quote: 'SoundCraft ANC is in a league of its own. The sound stage is ridiculously wide and the ANC actually makes you forget the outside world exists.', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&q=80&fit=crop&crop=face', name: 'Sophia Laurent', product: 'SoundCraft Elite ANC' },
+  { stars: '★★★★★', source: 'Google Reviews', quote: 'VisionWatch S3 tracks everything flawlessly. Battery life is insane — 11 days on a single charge. Never going back to anything else.', photo: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=120&q=80&fit=crop&crop=face', name: 'Amara Osei', product: 'VisionWatch S3 Pro' },
+  { stars: '★★★★★', source: 'Verified Purchase', quote: 'Ordered the Lifestyle Bundle — arrived in two days, beautifully packaged. The AuraPhone camera is breathtaking. Aurelis is the real deal.', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&q=80&fit=crop&crop=face', name: 'Kenji Nakamura', product: 'Lifestyle Bundle' },
+];
+---
+
+<section class="section-reviews" aria-labelledby="reviews-heading">
+  <div class="container">
+    <div class="testi-header">
+      <div>
+        <div class="eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Customer Stories</span></div>
+        <h2 class="sec-title" id="reviews-heading">What Our Customers Say</h2>
+      </div>
+      <div class="testi-trust-row">
+        <div class="testi-trust-item"><div class="testi-trust-num">4.<em>9</em></div><div class="testi-trust-label">Avg. Rating</div></div>
+        <div class="testi-trust-item"><div class="testi-trust-num">12<em>K+</em></div><div class="testi-trust-label">Reviews</div></div>
+        <div class="testi-trust-item"><div class="testi-trust-num">98<em>%</em></div><div class="testi-trust-label">Recommend</div></div>
+      </div>
+    </div>
+
+    <div class="testi-layout">
+      <article class="testi-feat-card">
+        <div class="testi-feat-quote-mark">&ldquo;</div>
+        <div class="testi-feat-stars">★★★★★</div>
+        <blockquote class="testi-feat-quote">The ProBook Ultra X1 is genuinely the finest laptop I've ever owned. Every detail — from the titanium chassis to the OLED display — radiates intentional craft. Aurelis didn't just sell me a laptop; they delivered an experience.</blockquote>
+        <div class="testi-feat-bottom">
+          <div class="testi-feat-author">
+            <div class="testi-feat-photo"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80&fit=crop&crop=face" alt="James Whitfield" /></div>
+            <div>
+              <div class="testi-feat-name">James Whitfield</div>
+              <div class="testi-feat-role">Product Designer · London, UK</div>
+            </div>
+          </div>
+          <span class="testi-verified-badge">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            Verified Buyer
+          </span>
+        </div>
+      </article>
+
+      <div class="testi-grid">
+        {cards.map((c) => (
+          <article class="testi-card">
+            <div class="testi-card-head">
+              <span class="testi-card-stars">{c.stars}</span>
+              <span class="testi-card-source">{c.source}</span>
+            </div>
+            <p class="testi-card-quote">{c.quote}</p>
+            <div class="testi-card-foot">
+              <div class="testi-card-photo"><img src={c.photo} alt={c.name} /></div>
+              <div class="testi-card-info">
+                <div class="testi-card-name">{c.name}</div>
+                <div class="testi-card-product">{c.product}</div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+
+    <div class="testi-cta-row">
+      <div class="testi-cta-left">
+        <div class="testi-cta-avatars">
+          <div class="testi-cta-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80&fit=crop&crop=face" alt="" /></div>
+          <div class="testi-cta-avatar"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80&fit=crop&crop=face" alt="" /></div>
+          <div class="testi-cta-avatar"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=80&fit=crop&crop=face" alt="" /></div>
+          <div class="testi-cta-avatar"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80&fit=crop&crop=face" alt="" /></div>
+        </div>
+        <div class="testi-cta-text">Join <strong>47,000+</strong> customers who trust Aurelis</div>
+      </div>
+      <a href="/products" class="testi-cta-btn">
+        Read All Reviews
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+      </a>
+    </div>
+  </div>
+</section>

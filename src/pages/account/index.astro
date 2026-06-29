@@ -1,0 +1,109 @@
+---
+// Account dashboard — requires a signed-in customer. Shows profile,
+// default address, and recent orders, with a logout action.
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { isCustomerAuthConfigured, isLoggedIn, getAccessToken, clearSession, getCustomer } from '~/lib/shopify/customer';
+import { formatMoney } from '~/lib/utils';
+
+if (!isCustomerAuthConfigured || !isLoggedIn(Astro.cookies)) {
+  return Astro.redirect('/account/login', 302);
+}
+
+let customer = null;
+try {
+  customer = await getCustomer(getAccessToken(Astro.cookies)!);
+} catch (err) {
+  // Token expired / revoked — drop the session and re-auth.
+  console.error('[account] profile fetch failed:', (err as Error).message);
+  clearSession(Astro.cookies);
+  return Astro.redirect('/account/login', 302);
+}
+
+const name = [customer?.firstName, customer?.lastName].filter(Boolean).join(' ') || customer?.displayName || 'there';
+const email = customer?.emailAddress?.emailAddress ?? '';
+const address = customer?.defaultAddress?.formatted ?? [];
+const orders = customer?.orders?.edges?.map((e) => e.node) ?? [];
+---
+
+<BaseLayout title="My Account">
+  <section class="acct">
+    <div class="container">
+      <div class="acct-head">
+        <div>
+          <p class="acct-eyebrow">My Account</p>
+          <h1 class="acct-title">Welcome back, {name}</h1>
+          {email && <p class="acct-email">{email}</p>}
+        </div>
+        <a href="/account/logout" class="btn-dark-outline">Log out</a>
+      </div>
+
+      <div class="acct-grid">
+        <div class="acct-card">
+          <h2 class="acct-card-title">Default address</h2>
+          {address.length > 0 ? (
+            <address class="acct-address">{address.map((line) => <span>{line}</span>)}</address>
+          ) : (
+            <p class="acct-muted">No address on file.</p>
+          )}
+        </div>
+
+        <div class="acct-card">
+          <h2 class="acct-card-title">Recent orders</h2>
+          {orders.length > 0 ? (
+            <ul class="acct-orders">
+              {orders.map((o) => (
+                <li class="acct-order">
+                  <div>
+                    <span class="acct-order-name">{o.name}</span>
+                    <span class="acct-order-date">{new Date(o.processedAt).toLocaleDateString()}</span>
+                  </div>
+                  <div class="acct-order-right">
+                    {o.totalPrice && <span class="acct-order-total">{formatMoney(o.totalPrice.amount, o.totalPrice.currencyCode)}</span>}
+                    {o.fulfillmentStatus && <span class="acct-order-status">{o.fulfillmentStatus.toLowerCase()}</span>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="acct-muted">You haven't placed any orders yet.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .acct { padding: 80px 0 100px; }
+  .acct-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap; margin-bottom: 48px;
+    border-bottom: 1px solid var(--platinum); padding-bottom: 32px;
+  }
+  .acct-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  .acct-title { font-family: var(--font-heading); font-size: clamp(28px, 4vw, 42px); font-weight: 600; color: var(--carbon); line-height: 1.1; }
+  .acct-email { color: var(--taupe); margin-top: 8px; font-size: 14px; }
+  .acct-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 24px; }
+  .acct-card { background: var(--white); border: 1px solid var(--platinum); border-radius: 16px; padding: 28px; }
+  .acct-card-title { font-family: var(--font-heading); font-size: 16px; font-weight: 600; color: var(--carbon); margin-bottom: 18px; }
+  .acct-address { font-style: normal; display: flex; flex-direction: column; gap: 4px; color: var(--carbon); font-size: 14px; line-height: 1.6; }
+  .acct-muted { color: var(--taupe); font-size: 14px; }
+  .acct-orders { display: flex; flex-direction: column; gap: 4px; }
+  .acct-order {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 0; border-bottom: 1px solid var(--platinum);
+  }
+  .acct-order:last-child { border-bottom: none; }
+  .acct-order-name { font-weight: 600; color: var(--carbon); font-size: 14px; }
+  .acct-order-date { display: block; color: var(--taupe); font-size: 12px; margin-top: 2px; }
+  .acct-order-right { text-align: right; }
+  .acct-order-total { font-weight: 600; color: var(--carbon); font-size: 14px; }
+  .acct-order-status { display: block; color: var(--taupe); font-size: 12px; text-transform: capitalize; margin-top: 2px; }
+  @media (max-width: 768px) {
+    .acct-grid { grid-template-columns: 1fr; }
+    .acct { padding: 48px 0 64px; }
+  }
+</style>

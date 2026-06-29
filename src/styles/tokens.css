@@ -1,0 +1,49 @@
+/* ===========================================
+   LUXURY DESIGN TOKENS
+   Extracted verbatim from the Aurelis Luxury design.
+=========================================== */
+:root {
+  /* Colors */
+  --obsidian: #07080C;
+  --graphite: #111318;
+  --ivory: #F8F6F1;
+  --white: #FFFFFF;
+  --platinum: #E7E2D9;
+  --gold: #C9A86A;
+  --gold-hover: #B8966A;
+  --gold-dim: rgba(201, 168, 106, 0.35);
+  --gold-glow: rgba(201, 168, 106, 0.07);
+  --taupe: #8B8175;
+  --carbon: #171717;
+
+  /* Borders / dividers */
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.14);
+
+  /* Utility */
+  --soft-bg: rgba(0, 0, 0, 0.03);
+
+  /* Typography */
+  --font-heading: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Layout */
+  --container: 1470px;
+
+  /* Radii */
+  --r-pill: 999px;
+  --r-xl: 24px;
+  --r-lg: 16px;
+  --r-md: 10px;
+  --r-sm: 6px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-fast: 150ms;
+  --t-base: 220ms;
+  --t-slow: 300ms;
+
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 16px 56px rgba(0, 0, 0, 0.1);
+}

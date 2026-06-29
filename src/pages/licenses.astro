@@ -1,0 +1,177 @@
+---
+// Licenses — credits and licensing for assets used in the Aurelis theme.
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+interface License { name: string; provider: string; license: string; href: string; note: string; }
+
+const groups: { title: string; items: License[] }[] = [
+  {
+    title: 'Typefaces',
+    items: [
+      { name: 'Sora', provider: 'Google Fonts', license: 'SIL Open Font License 1.1', href: 'https://fonts.google.com/specimen/Sora', note: 'Used for all display and heading type.' },
+      { name: 'Inter', provider: 'Google Fonts', license: 'SIL Open Font License 1.1', href: 'https://fonts.google.com/specimen/Inter', note: 'Used for body copy and UI text.' },
+    ],
+  },
+  {
+    title: 'Imagery',
+    items: [
+      { name: 'Product & lifestyle photography', provider: 'Unsplash', license: 'Unsplash License', href: 'https://unsplash.com/license', note: 'Placeholder imagery — replace with your own licensed assets before launch.' },
+      { name: 'Editorial illustrations', provider: 'Aurelis Studio', license: 'Theme license (included)', href: '#', note: 'Original artwork bundled with the theme.' },
+    ],
+  },
+  {
+    title: 'Icons',
+    items: [
+      { name: 'Feather Icons', provider: 'Cole Bemis', license: 'MIT License', href: 'https://feathericons.com', note: 'Inline SVG iconography throughout the UI.' },
+    ],
+  },
+  {
+    title: 'Frameworks & libraries',
+    items: [
+      { name: 'Astro', provider: 'The Astro Technology Company', license: 'MIT License', href: 'https://astro.build', note: 'Server-rendered page framework.' },
+      { name: 'React', provider: 'Meta Platforms, Inc.', license: 'MIT License', href: 'https://react.dev', note: 'Interactive islands (cart, search, gallery).' },
+      { name: 'nanostores', provider: 'Andrey Sitnik', license: 'MIT License', href: 'https://github.com/nanostores/nanostores', note: 'Framework-agnostic state for cart and drawers.' },
+      { name: 'Tailwind CSS', provider: 'Tailwind Labs', license: 'MIT License', href: 'https://tailwindcss.com', note: 'Utility styling layer.' },
+    ],
+  },
+];
+---
+
+<BaseLayout title="Licenses" description="Credits and licensing for the fonts, imagery, icons, and software used in the Aurelis theme.">
+  <section class="doc-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="crumb-sep">/</span>
+        <span class="current">Licenses</span>
+      </nav>
+      <span class="eyebrow">
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-text">Credits</span>
+      </span>
+      <h1 class="doc-title">Licenses &amp; Attributions</h1>
+      <p class="doc-sub">Aurelis is built on the work of others. Here are the typefaces, assets, and open-source projects that make this theme possible.</p>
+    </div>
+  </section>
+
+  <section class="doc-body">
+    <div class="container doc-narrow">
+      {groups.map((g) => (
+        <div class="lic-group">
+          <h2 class="lic-group-title">{g.title}</h2>
+          <ul class="lic-list">
+            {g.items.map((it) => (
+              <li class="lic-row">
+                <div class="lic-main">
+                  <span class="lic-name">{it.name}</span>
+                  <span class="lic-note">{it.note}</span>
+                </div>
+                <div class="lic-side">
+                  <span class="lic-provider">{it.provider}</span>
+                  {it.href !== '#'
+                    ? <a class="lic-license" href={it.href} target="_blank" rel="noopener noreferrer">{it.license}</a>
+                    : <span class="lic-license is-static">{it.license}</span>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+
+      <p class="lic-footnote">
+        This theme is provided under its purchase license. Placeholder photography and demo content are for
+        presentation only and must be replaced with assets you are licensed to use before publishing your store.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .doc-hero {
+    background: var(--obsidian);
+    color: var(--white);
+    padding: 40px 0 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 80% -10%, rgba(201,168,106,0.15) 0%, transparent 55%);
+  }
+  .doc-hero .container { position: relative; z-index: 1; }
+  .breadcrumb { display: flex; align-items: center; gap: 10px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; margin: 14px 0 38px; }
+  .breadcrumb a { color: rgba(255,255,255,0.5); transition: color var(--t-fast) ease; }
+  .breadcrumb a:hover { color: var(--white); }
+  .breadcrumb .crumb-sep { color: var(--gold-dim); }
+  .breadcrumb .current { color: rgba(255,255,255,0.85); }
+  .doc-hero .eyebrow { margin-bottom: 18px; }
+  .doc-title {
+    font-family: var(--font-heading);
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
+  }
+  .doc-sub { font-size: 17px; color: rgba(255,255,255,0.5); line-height: 1.7; max-width: 600px; }
+
+  /* Body */
+  .doc-body { padding: 80px 0 110px; }
+  .doc-narrow { max-width: 860px; }
+
+  .lic-group { margin-bottom: 56px; }
+  .lic-group-title {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .lic-list { display: flex; flex-direction: column; }
+  .lic-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .lic-main { display: flex; flex-direction: column; gap: 5px; max-width: 480px; }
+  .lic-name { font-size: 16px; font-weight: 600; color: var(--carbon); }
+  .lic-note { font-size: 13.5px; color: var(--taupe); line-height: 1.6; }
+  .lic-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; flex-shrink: 0; }
+  .lic-provider { font-size: 13px; color: var(--carbon); font-weight: 500; }
+  .lic-license {
+    font-size: 12px;
+    color: var(--gold-hover);
+    font-weight: 600;
+    border-bottom: 1px solid var(--gold-dim);
+    padding-bottom: 1px;
+    transition: color var(--t-fast) ease;
+  }
+  .lic-license:hover { color: var(--gold); }
+  .lic-license.is-static { color: var(--taupe); border-bottom-color: transparent; }
+
+  .lic-footnote {
+    margin-top: 16px;
+    padding: 24px 26px;
+    background: var(--soft-bg);
+    border-radius: var(--r-lg);
+    font-size: 13.5px;
+    color: var(--taupe);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 640px) {
+    .lic-row { flex-direction: column; gap: 10px; }
+    .lic-side { align-items: flex-start; text-align: left; }
+  }
+</style>

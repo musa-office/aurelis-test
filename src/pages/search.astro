@@ -1,0 +1,68 @@
+---
+// ============================================================
+//  Search results — full product search, sort + pagination.
+//  Reuses the shop listing shell (toolbar + grid + pagination).
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ProductListing from '~/components/product/ProductListing.astro';
+import { searchProducts, SEARCH_SORT_OPTIONS, resolveSort } from '~/lib/shopify';
+import { paginationUrls } from '~/lib/pagination';
+import type { ProductCard } from '~/lib/shopify/types';
+import '~/styles/product-card.css';
+import '~/styles/pages/shop.css';
+
+const url = Astro.url;
+const q = (url.searchParams.get('q') ?? '').trim();
+const sortValue = url.searchParams.get('sort') ?? SEARCH_SORT_OPTIONS[0].value;
+const sort = resolveSort(SEARCH_SORT_OPTIONS, sortValue);
+const after = url.searchParams.get('after');
+const before = url.searchParams.get('before');
+
+let products: ProductCard[] = [];
+let total = 0;
+let prevUrl: string | null = null;
+let nextUrl: string | null = null;
+
+if (q) {
+  try {
+    const page = await searchProducts({ query: q, pageSize: 12, after, before, sortKey: sort.sortKey, reverse: sort.reverse });
+    products = page.items;
+    total = page.totalCount;
+    ({ prevUrl, nextUrl } = paginationUrls(url, page.pageInfo));
+  } catch (err) {
+    console.error('[search] load failed:', (err as Error).message);
+  }
+}
+---
+
+<BaseLayout title={q ? `Search · ${q}` : 'Search'} description="Search the full Aurelis catalogue.">
+  <section class="page-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="crumb-sep">/</span>
+        <span class="current">Search</span>
+      </nav>
+      <div class="hero-row">
+        <div class="hero-l">
+          <h1>{q ? `Results for “${q}”` : 'Search'}</h1>
+          <p>{q ? `${total} ${total === 1 ? 'product' : 'products'} found.` : 'Use the search icon in the header to find products.'}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {q && (
+    <ProductListing
+      products={products}
+      sortOptions={SEARCH_SORT_OPTIONS}
+      sortValue={sort.value}
+      url={url}
+      basePath="/search"
+      prevUrl={prevUrl}
+      nextUrl={nextUrl}
+      emptyTitle="No matches"
+      emptyBody={`Nothing matched “${q}”. Try another term.`}
+    />
+  )}
+</BaseLayout>

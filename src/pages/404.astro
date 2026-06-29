@@ -1,0 +1,59 @@
+---
+// Custom 404 — on-brand not-found page.
+import BaseLayout from '~/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found" description="The page you're looking for doesn't exist.">
+  <section class="nf-wrap">
+    <span class="eyebrow">
+      <span class="eyebrow-line"></span>
+      <span class="eyebrow-text">Error 404</span>
+    </span>
+    <h1 class="nf-code">404</h1>
+    <h2 class="nf-title">This page wandered off</h2>
+    <p class="nf-sub">The page you're looking for doesn't exist or has moved. Let's get you back to something beautiful.</p>
+    <div class="nf-actions">
+      <a href="/" class="btn-dark">Back to home</a>
+      <a href="/products" class="btn-dark-outline">Shop the catalogue</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf-wrap {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 16px;
+    padding: 100px 30px;
+  }
+  .nf-code {
+    font-family: var(--font-heading);
+    font-size: clamp(96px, 18vw, 200px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--obsidian);
+  }
+  .nf-title {
+    font-family: var(--font-heading);
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .nf-sub {
+    max-width: 460px;
+    color: var(--taupe);
+    font-size: 15px;
+  }
+  .nf-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 12px;
+  }
+</style>

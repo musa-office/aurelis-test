@@ -1,0 +1,185 @@
+---
+// Deals & bundles — interactive bundle builder (toggle items → live
+// price/savings recompute). When `bundles` prop is provided with items from
+// Shopify, those are rendered; otherwise the static design placeholders show.
+interface DealItem { name: string; sub: string; price: number; img: string; handle: string; variantId: string | null; }
+interface DealBundle { id: string; name: string; img: string; discount: number; badge: string | null; tag: string; items: DealItem[]; }
+interface Props { bundles?: DealBundle[]; }
+
+const { bundles = [] } = Astro.props;
+
+const fmt = (n: number) => '$' + Math.round(n).toLocaleString();
+
+// Static fallback shown when Shopify is unreachable.
+const STATIC_BUNDLES: DealBundle[] = [
+  {
+    id: 'b1', name: 'Home Office Pro Bundle', img: '/images/bundle save-01.jpg', discount: 0.16, badge: null, tag: 'Best Value',
+    items: [
+      { name: 'ProBook Ultra X1 — 16″', sub: '512GB · Space Gray', price: 2499, img: '/images/bcard1-1.jpg', handle: '', variantId: null },
+      { name: 'VisionPro 4K Monitor — 32″', sub: 'UltraWide · USB-C Hub', price: 899, img: '/images/bcard1-2.jpg', handle: '', variantId: null },
+      { name: 'KeyCraft Wireless Set', sub: 'Keyboard + Mouse · Quiet Keys', price: 199, img: '/images/bcard1-3.jpg', handle: '', variantId: null },
+    ],
+  },
+  {
+    id: 'b2', name: 'Lifestyle Premium Bundle', img: '/images/bundle save-02.jpg', discount: 0.18, badge: 'Most Popular', tag: 'Best Seller',
+    items: [
+      { name: 'AuraPhone Pro Max', sub: '256GB · Space Black', price: 1199, img: '/images/bcard2-1.jpg', handle: '', variantId: null },
+      { name: 'SoundCraft ANC Pro', sub: 'Over-Ear · 40hr Battery', price: 449, img: '/images/bcard2-2.jpg', handle: '', variantId: null },
+      { name: 'VisionWatch S3 Pro', sub: '45mm · Always-On OLED', price: 549, img: '/images/bcard2-3.jpg', handle: '', variantId: null },
+    ],
+  },
+  {
+    id: 'b3', name: 'Creator Studio Bundle', img: '/images/bundle save-03.jpg', discount: 0.15, badge: null, tag: 'Pro Pick',
+    items: [
+      { name: 'ProBook Ultra X1 — 16″', sub: '1TB · OLED Display', price: 2999, img: '/images/bcard3-1.jpg', handle: '', variantId: null },
+      { name: 'AuraPhone Pro Max', sub: '512GB · 200MP Camera', price: 1399, img: '/images/bcard3-2.jpg', handle: '', variantId: null },
+      { name: 'SoundCraft Elite Studio', sub: 'Studio Reference · Planar', price: 649, img: '/images/bcard3-3.jpg', handle: '', variantId: null },
+    ],
+  },
+];
+
+const active = bundles.length > 0 ? bundles : STATIC_BUNDLES;
+---
+
+<section class="section-deals" aria-labelledby="deals-heading">
+  <div class="container">
+    <div class="sec-header">
+      <div>
+        <div class="eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">Premium Bundles</span></div>
+        <h2 class="sec-title" id="deals-heading">Save More, Get More</h2>
+      </div>
+      <a href="/products" class="view-all" style="margin-top: 32px;">
+        View All Bundles
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+      </a>
+    </div>
+
+    <div class="deals-grid">
+      {active.map((b) => {
+        const subtotal = b.items.reduce((s, it) => s + it.price, 0);
+        const now = subtotal * (1 - b.discount);
+        return (
+          <div class={`deal-card${b.badge ? ' featured' : ''}`}>
+            {b.badge && <span class="deal-badge">{b.badge}</span>}
+            <div class="deal-img">
+              {b.img
+                ? <img src={b.img} alt={b.name} loading="lazy" />
+                : <div class="deal-img-placeholder" />}
+              <div class="deal-img-overlay"></div>
+              <div class="deal-img-title">
+                <span class="deal-img-eyebrow">Bundle Deal</span>
+                <h3 class="deal-name">{b.name}</h3>
+              </div>
+            </div>
+            <div class="deal-body" data-bundle-body data-discount={b.discount}>
+              <div class="bundle-items">
+                {b.items.map((it) => (
+                  <div
+                    class="bundle-item selected"
+                    data-bundle-item
+                    data-price={it.price}
+                    data-variant-id={it.variantId ?? ''}
+                  >
+                    <div class="bundle-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></div>
+                    <div class="bundle-item-img">
+                      {it.img
+                        ? <img src={it.img} alt={it.name} loading="lazy" />
+                        : <div class="bundle-item-img-placeholder" />}
+                    </div>
+                    <div class="bundle-item-info">
+                      <span class="bundle-item-name">{it.name}</span>
+                      {it.sub && <span class="bundle-item-sub">{it.sub}</span>}
+                    </div>
+                    <span class="bundle-item-price">{fmt(it.price)}</span>
+                  </div>
+                ))}
+              </div>
+              <div class="bundle-select-info">
+                <span class="bundle-select-count"><strong class="bundle-count">{b.items.length}</strong> of {b.items.length} selected</span>
+                <div class="bundle-select-actions">
+                  <button class="bundle-select-action" data-bundle-all>All</button>
+                  <button class="bundle-select-action" data-bundle-none>None</button>
+                </div>
+              </div>
+              <div class="deal-savings-row">
+                <span class="deal-save-label">You save with this bundle</span>
+                <span class="deal-save-amount"><span class="bundle-save-amount">{fmt(subtotal - now)}</span> — <span class="bundle-save-pct">{Math.round(b.discount * 100)}</span>% off</span>
+              </div>
+              <div class="deal-pricing">
+                <span class="deal-price-now bundle-price-now">{fmt(now)}</span>
+                <span class="deal-price-was bundle-price-was">{fmt(subtotal)}</span>
+                <span class="deal-saving">{b.tag}</span>
+              </div>
+              <button type="button" class="deal-btn bundle-cart-btn">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span class="bundle-btn-label">Add Bundle to Cart</span>
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<script>
+  import { addItem, openCart } from '~/stores/cart';
+
+  const money = (n: number) => '$' + Math.round(n).toLocaleString();
+
+  document.querySelectorAll('[data-bundle-body]').forEach((body) => {
+    const discount = Number((body as HTMLElement).dataset.discount) || 0;
+    const items = Array.from(body.querySelectorAll('[data-bundle-item]'));
+    const btn = body.querySelector('.bundle-cart-btn') as HTMLButtonElement | null;
+    const label = btn?.querySelector('.bundle-btn-label') as HTMLElement | null;
+
+    const recalc = () => {
+      const selected = items.filter((i) => i.classList.contains('selected'));
+      const subtotal = selected.reduce((s, i) => s + Number((i as HTMLElement).dataset.price), 0);
+      const now = subtotal * (1 - discount);
+      const set = (sel: string, v: string) => { const el = body.querySelector(sel); if (el) el.textContent = v; };
+      set('.bundle-count', String(selected.length));
+      set('.bundle-save-amount', money(subtotal - now));
+      set('.bundle-price-now', money(now));
+      set('.bundle-price-was', money(subtotal));
+      const countWrap = body.querySelector('.bundle-select-count');
+      if (countWrap) countWrap.innerHTML = `<strong class="bundle-count">${selected.length}</strong> of ${items.length} selected`;
+      if (btn) btn.style.opacity = selected.length ? '1' : '0.5';
+    };
+
+    items.forEach((i) => i.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) return;
+      i.classList.toggle('selected');
+      recalc();
+    }));
+    body.querySelector('[data-bundle-all]')?.addEventListener('click', () => { items.forEach((i) => i.classList.add('selected')); recalc(); });
+    body.querySelector('[data-bundle-none]')?.addEventListener('click', () => { items.forEach((i) => i.classList.remove('selected')); recalc(); });
+
+    btn?.addEventListener('click', async () => {
+      const selected = items.filter((i) => i.classList.contains('selected'));
+      const variantIds = selected
+        .map((i) => (i as HTMLElement).dataset.variantId)
+        .filter((id): id is string => Boolean(id));
+
+      if (!variantIds.length) return;
+
+      btn.disabled = true;
+      if (label) label.textContent = 'Adding…';
+
+      try {
+        for (const id of variantIds) {
+          await addItem(id, 1);
+        }
+        if (label) label.textContent = '✓ Added to Cart';
+        openCart();
+        setTimeout(() => {
+          if (label) label.textContent = 'Add Bundle to Cart';
+          btn.disabled = false;
+        }, 2500);
+      } catch {
+        if (label) label.textContent = 'Error — Try Again';
+        btn.disabled = false;
+      }
+    });
+  });
+</script>

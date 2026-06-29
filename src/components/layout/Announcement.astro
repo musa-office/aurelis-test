@@ -1,0 +1,118 @@
+---
+// Slim top announcement bar with rotating center messages.
+// Rotation is presentational → kept as a tiny vanilla script.
+import { ANN_BAR } from '~/config/site';
+import { getCurrencyForCountry, getAvailableCurrencies } from '~/lib/shopify';
+import { isCustomerAuthConfigured, isLoggedIn } from '~/lib/shopify/customer';
+
+// Slot 0 of ANN_BAR.right is the currency switcher; the rest are plain links.
+// Pull the live presentment currency from Shopify for the request's resolved
+// country so the label agrees with the prices/cart, plus the full list of the
+// store's currencies for the dropdown. Both are cached.
+const { code, symbol } = await getCurrencyForCountry(Astro.locals.country);
+const currencies = await getAvailableCurrencies();
+
+// Swap the auth link to "Log out" once the visitor is signed in.
+const loggedIn = isCustomerAuthConfigured && isLoggedIn(Astro.cookies);
+const otherLinks = ANN_BAR.right.slice(1).map((l) =>
+  l.href === '/account/login'
+    ? loggedIn
+      ? { label: 'Log out', href: '/account/logout' }
+      : l
+    : l,
+);
+---
+
+<div class="ann-bar">
+  <div class="ann-side">
+    {ANN_BAR.left.map((l, i) => (
+      <>
+        {i > 0 && <span class="ann-sep">|</span>}
+        <a href={l.href} class="ann-link">{l.label}</a>
+      </>
+    ))}
+  </div>
+
+  <div class="ann-center" id="ann-center" aria-live="polite">
+    {ANN_BAR.slides.map((s, i) => (
+      <span class={`ann-slide${i === 0 ? ' active' : ''}`}>
+        ✦ &nbsp;<strong>{s.strong}</strong> {s.rest}&nbsp; ✦
+      </span>
+    ))}
+  </div>
+
+  <div class="ann-side">
+    {currencies.length > 0 ? (
+      <div class="ann-currency" data-currency-menu>
+        <button type="button" class="ann-link ann-currency-btn" data-currency-toggle aria-haspopup="listbox" aria-expanded="false">
+          EN / {code} {symbol}
+          <svg class="ann-currency-caret" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <ul class="ann-currency-menu" role="listbox" aria-label="Select currency">
+          {currencies.map((c) => (
+            <li>
+              <button
+                type="button"
+                class={`ann-currency-item${c.code === code ? ' is-active' : ''}`}
+                role="option"
+                aria-selected={c.code === code}
+                data-country={c.country}
+              >
+                <span class="ann-cur-code">{c.code}</span>
+                <span class="ann-cur-sym">{c.symbol}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : (
+      <span class="ann-link">EN / {code} {symbol}</span>
+    )}
+    {otherLinks.map((l) => (
+      <>
+        <span class="ann-sep">|</span>
+        <a href={l.href} class="ann-link">{l.label}</a>
+      </>
+    ))}
+  </div>
+</div>
+
+<script>
+  // Rotate the center announcement slides.
+  const slides = Array.from(document.querySelectorAll<HTMLElement>('#ann-center .ann-slide'));
+  if (slides.length > 1) {
+    let i = 0;
+    setInterval(() => {
+      slides[i].classList.remove('active');
+      i = (i + 1) % slides.length;
+      slides[i].classList.add('active');
+    }, 4000);
+  }
+
+  // Currency switcher — selecting a currency pins its country in a cookie that
+  // the middleware reads to localize prices/cart on the next request.
+  const menu = document.querySelector('[data-currency-menu]');
+  if (menu) {
+    const toggle = menu.querySelector('[data-currency-toggle]') as HTMLElement | null;
+    const close = () => { menu.classList.remove('open'); toggle?.setAttribute('aria-expanded', 'false'); };
+    toggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = menu.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target as Node)) close();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    menu.querySelectorAll<HTMLElement>('[data-country]').forEach((item) => {
+      item.addEventListener('click', () => {
+        const cc = item.dataset.country;
+        if (!cc) return;
+        document.cookie = `omnix_country=${cc}; path=/; max-age=31536000; samesite=lax`;
+        location.reload();
+      });
+    });
+  }
+</script>

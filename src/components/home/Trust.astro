@@ -1,0 +1,29 @@
+---
+// Trust signals strip — four static guarantees. Verbatim from the design.
+const items = [
+  { title: 'Free Express Delivery', body: 'Complimentary on all orders above $200, dispatched within 24 hours.', path: 'M3 8h14v14H3zM17 13h7l4 4v5h-11M3 18h14M21 8l3 5' },
+  { title: '30-Day Returns', body: 'Effortless returns with full refund, no questions asked.', path: 'M27 16a11 11 0 11-3.5-8.05M27 4v6h-6' },
+  { title: '2-Year Warranty', body: 'Comprehensive coverage on every premium device we carry.', path: 'M16 3l11 4v9c0 7-5 11-11 13-6-2-11-6-11-13V7l11-4zM11.5 16l3 3 6-6.5' },
+  { title: 'Concierge Support', body: 'Personal product experts available around the clock for guidance.', path: 'M5 19a11 11 0 1122 0v6a3 3 0 01-3 3h-2v-9h5M5 19v6a3 3 0 003 3h2v-9H5z' },
+];
+---
+
+<section class="section-trust" aria-label="Trust signals">
+  <div class="container">
+    <div class="trust-grid">
+      {items.map((it) => (
+        <div class="trust-item">
+          <div class="trust-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d={it.path} />
+            </svg>
+          </div>
+          <div class="trust-text">
+            <h4>{it.title}</h4>
+            <p>{it.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

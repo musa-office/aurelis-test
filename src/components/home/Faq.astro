@@ -1,0 +1,56 @@
+---
+// FAQ — accordion. Static content; first item open. Body height is set
+// inline by the toggle script (matching the design's mechanism).
+const faqs = [
+  { q: "What is Aurelis's return policy?", a: 'We offer a hassle-free 30-day return policy on all products. Items must be in original condition with packaging intact. Once received and inspected, refunds are processed within 3–5 business days to your original payment method.' },
+  { q: 'Do you offer international shipping?', a: 'Yes — we ship to over 47 countries worldwide. Standard international shipping takes 5–10 business days. Express international shipping (2–4 days) is available at checkout for most destinations.' },
+  { q: 'Are all products covered by warranty?', a: 'All products sold on Aurelis come with a minimum 1-year manufacturer warranty. Premium categories like laptops and smartphones include an extended 2-year comprehensive warranty covering manufacturer defects and hardware failures.' },
+  { q: 'Can I pay in installments?', a: 'Absolutely. We offer Buy Now Pay Later options including 4 interest-free installments via our payment partners. Simply select your preferred BNPL option at checkout. Available on orders over $100.' },
+  { q: 'How do I track my order?', a: 'Once your order ships, you\'ll receive a confirmation email with a tracking number. You can monitor your delivery in real time through our website under "Track Order" in the top menu, or directly through the carrier\'s tracking portal.' },
+  { q: 'Are the products authentic and brand new?', a: 'Every product on Aurelis is 100% authentic and brand new, sourced directly from authorized distributors and manufacturers. We never sell refurbished or grey-market products — your purchase is backed by our authenticity guarantee.' },
+];
+---
+
+<section class="section-faq" aria-labelledby="faq-heading">
+  <div class="container">
+    <div class="faq-layout">
+      <div class="faq-left">
+        <div class="eyebrow" style="margin-bottom: 20px;"><div class="eyebrow-line"></div><span class="eyebrow-text">Support</span></div>
+        <h2 class="faq-left-title" id="faq-heading">Frequently Asked Questions</h2>
+        <p class="faq-left-sub">Can't find what you're looking for? Our team is available 7 days a week to help you out.</p>
+        <a href="/contact" class="faq-contact-btn">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+          Contact Support
+        </a>
+      </div>
+
+      <div class="faq-list">
+        {faqs.map((f, i) => (
+          <div class={`faq-item${i === 0 ? ' open' : ''}`}>
+            <button class="faq-trigger" data-faq aria-expanded={i === 0 ? 'true' : 'false'}>
+              <span class="faq-q">{f.q}</span>
+              <span class="faq-icon"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg></span>
+            </button>
+            <div class="faq-body">
+              <div class="faq-body-inner">{f.a}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('.section-faq [data-faq]').forEach((btn) => {
+    const item = btn.closest('.faq-item');
+    const body = item?.querySelector('.faq-body') as HTMLElement | null;
+    const sync = () => {
+      const open = item?.classList.contains('open');
+      if (body) body.style.maxHeight = open ? `${body.scrollHeight}px` : '0px';
+      btn.setAttribute('aria-expanded', String(!!open));
+    };
+    if (item?.classList.contains('open')) sync();
+    btn.addEventListener('click', () => { item?.classList.toggle('open'); sync(); });
+  });
+</script>

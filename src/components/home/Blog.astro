@@ -1,0 +1,119 @@
+---
+// Blog / buying guides — live Shopify articles when available; static placeholders as fallback.
+import type { BlogArticle } from '~/lib/shopify/types';
+
+interface Props { articles?: BlogArticle[]; }
+const { articles = [] } = Astro.props;
+
+const STATIC = [
+  { img: '/images/mpan0mun-blog-1.jpg', cat: 'Buying Guide', read: '8 min read', num: '01', date: 'May 2025', title: 'The Best Premium Laptops of 2025 — Ranked by Our Editors', excerpt: "We tested 14 premium laptops over six weeks. Here's what's actually worth your investment this year.", authorName: 'James Reid', href: '#' },
+  { img: '/images/mpan0muq-blog-2.jpg', cat: 'Review',       read: '6 min read', num: '02', date: 'Apr 2025', title: 'SoundCraft Elite ANC Review — The Headphones That Changed Everything', excerpt: "Six months of daily use, studio sessions, and long-haul flights. Here's our complete verdict.", authorName: 'Sara Lin', href: '#' },
+  { img: '/images/mpan0mus-blog-3.jpg', cat: 'Comparison',   read: '10 min read', num: '03', date: 'Apr 2025', title: 'AuraPhone Pro Max vs. Competition — Who Wins in 2025?', excerpt: 'A rigorous head-to-head covering camera, performance, battery, and build quality across five flagship phones.', authorName: 'Marcus K.', href: '#' },
+];
+
+function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function estimateRead(html: string): string {
+  const words = html.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.ceil(words / 250))} min read`;
+}
+
+function initials(name: string): string {
+  return name.split(' ').map((p) => p[0] ?? '').join('').slice(0, 2).toUpperCase();
+}
+
+const posts = articles.length > 0
+  ? articles.map((a, i) => ({
+      img: a.image?.url ?? '',
+      cat: a.tags[0] ?? 'Article',
+      read: a.contentHtml ? estimateRead(a.contentHtml) : '',
+      num: String(i + 1).padStart(2, '0'),
+      date: fmtDate(a.publishedAt),
+      title: a.title,
+      excerpt: a.excerpt ?? '',
+      authorName: a.authorName ?? 'Aurelis Editors',
+      href: `/blog/${a.handle}`,
+      authorInitials: initials(a.authorName ?? 'OE'),
+    }))
+  : STATIC.map((p) => ({ ...p, href: p.href, authorInitials: initials(p.authorName) }));
+---
+
+<section class="section-blog" aria-labelledby="blog-heading">
+  <div class="container">
+    <div class="sec-header">
+      <div>
+        <div class="eyebrow"><div class="eyebrow-line"></div><span class="eyebrow-text">The Edit</span></div>
+        <h2 class="sec-title" id="blog-heading">Expert Guides &amp; Reviews</h2>
+      </div>
+      <a href="/blog" class="view-all">
+        View All Articles
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+      </a>
+    </div>
+
+    <div class="blog-grid">
+      {posts.map((p) => (
+        <article class="blog-card">
+          <a href={p.href} class="blog-visual" tabindex="-1" aria-hidden="true">
+            {p.img
+              ? <img src={p.img} alt={p.title} loading="lazy" />
+              : <div class="blog-visual-placeholder" />}
+            <div class="blog-visual-overlay"></div>
+            <span class="blog-category">{p.cat}</span>
+            {p.read && <span class="blog-read-badge">{p.read}</span>}
+            <span class="blog-num">{p.num}</span>
+          </a>
+          <div class="blog-content">
+            <div class="blog-eyebrow"><span class="blog-eyebrow-line"></span><span class="blog-date">{p.date}</span></div>
+            <h3 class="blog-title"><a href={p.href}>{p.title}</a></h3>
+            {p.excerpt && <p class="blog-excerpt">{p.excerpt}</p>}
+            <div class="blog-footer">
+              <div class="blog-author">
+                <div class="blog-author-avatar blog-author-initials">{p.authorInitials}</div>
+                <span class="blog-author-name">{p.authorName}</span>
+              </div>
+              <a href={p.href} class="blog-link">
+                Read
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .blog-visual {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .blog-visual-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--platinum);
+  }
+  .blog-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .blog-title a:hover {
+    color: var(--gold);
+  }
+  .blog-author-initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--obsidian);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-radius: 50%;
+  }
+</style>

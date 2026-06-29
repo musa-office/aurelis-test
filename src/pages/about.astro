@@ -1,0 +1,255 @@
+---
+// ============================================================
+//  About — Aurelis story page (editorial, static). Reuses the shared
+//  FAQ / Trust / Newsletter sections. Verbatim markup from about.html
+//  (paths fixed, onclick handlers converted to scoped scripts).
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Faq from '~/components/home/Faq.astro';
+import Trust from '~/components/home/Trust.astro';
+import Newsletter from '~/components/home/Newsletter.astro';
+import '~/styles/pages/about.css';
+
+const values = [
+  { img: '/images/core value-01.jpg', title: 'Innovation and<br>Creativity', body: ["Innovation isn't a buzzword for us — it's the reason every product earns its place. We obsess over the small details others overlook: the texture of a finish, the warmth of a sound stage, the way a device feels in the hand.", 'Our curation team works hand-in-hand with engineers and designers, prototyping and refining until an idea becomes something genuinely better — not just newer.'] },
+  { img: '/images/core value-02.jpg', title: 'Passion for<br>Excellence', body: ['Excellence is a standard we refuse to compromise. Less than four percent of the products we evaluate make it into the collection — each one tested, authenticated, and judged against a simple question: would we be proud to own it ourselves?', 'A genuine two-year warranty and specialists available around the clock are not perks — they are promises.'] },
+  { img: '/images/core value-03.jpg', title: 'Respect and<br>Inclusion', body: ['Great technology should be for everyone, and so should a great experience. We design our store, our advice, and our service to welcome people of every background and level of expertise.', 'Towards our customers, that respect shows up as honesty: clear answers, fair pricing, and guidance that puts what\'s right for you ahead of what\'s easy for us.'] },
+];
+
+const history = [
+  { year: '2016', title: 'The Idea Sparked', text: 'It started with a few passionate engineers who believed premium technology could feel more human — simpler, more honest, more considered. We opened with a single curated catalogue.', img: '/images/history-2016.jpg' },
+  { year: '2019', title: 'Launching the Online Platform', text: 'We took Aurelis online, building a curated digital storefront so anyone, anywhere could explore and buy with confidence.', img: '/images/history-2019.jpg' },
+  { year: '2021', title: 'Partnerships with Leading Brands', text: "We forged direct partnerships with the world's leading makers — securing authentic, brand-new products straight from the source.", img: '/images/history-2021.jpg' },
+  { year: '2022', title: 'First Physical Stores', text: 'We opened our first physical stores — considered spaces to see, touch, and hear the collection in person.', img: '/images/history-2022.jpg' },
+  { year: '2023', title: 'Expansion Across the Country', text: 'Demand grew, and so did we. New stores and faster delivery brought Aurelis to cities across the country.', img: '/images/history-2023.jpg' },
+  { year: '2025', title: 'Expansion Worldwide', text: 'We crossed borders, bringing our curated approach to customers around the globe.', img: '/images/history-2025.jpg' },
+  { year: '2026', title: 'Still Growing, Still Grounded', text: 'Now with a full team of specialists, designers, and curators, we keep putting people ahead of products.', img: '/images/history-2026.jpg' },
+];
+
+const team = [
+  ['team-01.jpg', 'Elias Mørk', 'Founder & Creative Director'], ['team-02.jpg', 'Sofia Lindqvist', 'Head of Curation'],
+  ['team-03.jpg', 'Noah Bergström', 'Head of Technology'], ['team-04.jpg', 'Lukas Vogel', 'Operations Director'],
+  ['team-05.jpg', 'Tomas Reuben', 'Logistics Manager'], ['team-06.jpg', 'Marcus Holt', 'Head of Sound Engineering'],
+  ['team-07.jpg', 'Amara Okafor', 'Customer Experience Lead'], ['team-08.jpg', 'Hana Reyes', 'Brand & Content Lead'],
+];
+const LINKEDIN = 'M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77Z';
+---
+
+<BaseLayout title="About" description="Aurelis — technology, curated like fine art.">
+  <section class="about-hero">
+    <div class="about-hero-bg"><img src="/images/about-hero.jpg" alt="Aurelis — luxury electronics, curated" /></div>
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a><span class="crumb-sep">/</span><span class="current">About</span>
+      </nav>
+      <div class="ah-inner">
+        <h1 class="ah-title">Technology, <span class="t-gold">curated</span><br />like fine art.</h1>
+        <p class="ah-sub">Aurelis was born from a simple belief — that the devices we live with should be chosen with the same care as the art we hang on our walls. We curate only the exceptional.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-cell"><div class="stat-num" data-count="250" data-suffix="K+">0</div><div class="stat-label">Customers worldwide</div></div>
+        <div class="stat-cell"><div class="stat-num" data-count="47" data-suffix="">0</div><div class="stat-label">Countries served</div></div>
+        <div class="stat-cell"><div class="stat-num" data-count="12" data-suffix="">0</div><div class="stat-label">Flagship boutiques</div></div>
+        <div class="stat-cell"><div class="stat-num" data-count="4.9" data-dec="1" data-suffix="★">0</div><div class="stat-label">Average rating</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cn-intro">
+    <div class="container">
+      <span class="cn-eb">Our Story</span>
+      <h2>We believe the technology you live with should be chosen with the same care as the <span class="t-gold">art on your walls</span>.</h2>
+      <p>Aurelis began with a simple idea — that great devices deserve great curation. So we built a place where every product is chosen, tested, and delivered like something worth keeping.</p>
+    </div>
+  </section>
+
+  <section class="cn-imgtext">
+    <div class="container">
+      <div class="cn-it-grid">
+        <div class="cn-it-media"><img src="/images/how-it-started.jpg" alt="The beginning of Aurelis" /></div>
+        <div class="cn-it-text">
+          <span class="cn-eb">How it started</span>
+          <h3>From a single shelf of twelve products</h3>
+          <p>In 2016 we opened with one curated catalogue and one belief: <strong>sell only what we'd own ourselves</strong>. No endless aisles, no noise — just the pieces that earned their place.</p>
+          <p>That discipline still guides us. We partner directly with the world's finest makers to bring you authenticated, brand-new technology, backed by a genuine two-year warranty.</p>
+          <div class="cn-it-sign">
+            <div class="av">EM</div>
+            <div><div class="nm">Elias Mørk</div><div class="rl">Founder &amp; Creative Director</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cn-values">
+    <div class="container">
+      <div class="cv-layout">
+        <div class="cv-left">
+          <div class="cv-eyebrow"><span class="ln"></span><span class="tx">Our Core Values</span></div>
+          <h2 class="cv-title">The Principles<br />We Live By</h2>
+          <p class="cv-desc">Our core principles reflect our commitment to excellence, fostering innovation and creativity, and promoting an environment of respect and inclusion — within our team and towards our valued customers.</p>
+        </div>
+        <div class="cv-cards">
+          {values.map((v) => (
+            <div class="cv-card">
+              <img src={v.img} alt={v.title.replace('<br>', ' ')} />
+              <div class="cv-card-body">
+                <div class="cv-card-title" set:html={v.title}></div>
+                <button class="cv-card-btn" data-cv aria-label="Read more">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" /></svg>
+                </button>
+              </div>
+              <div class="cv-article-data" hidden set:html={v.body.map((p) => `<p>${p}</p>`).join('')}></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cv-modal" id="cv-modal" role="dialog" aria-modal="true" aria-labelledby="cv-modal-title">
+    <div class="cv-modal-overlay" data-cv-close></div>
+    <div class="cv-modal-box">
+      <button class="cv-modal-close" aria-label="Close" data-cv-close>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+      <div class="cv-modal-eyebrow"><span class="ln"></span><span class="tx">Our Core Values</span></div>
+      <h2 class="cv-modal-title" id="cv-modal-title"></h2>
+      <div class="cv-modal-body"></div>
+    </div>
+  </div>
+
+  <section class="cn-collage">
+    <div class="container">
+      <div class="cn-col-grid">
+        <div class="cn-col-imgs">
+          <div class="ci ci-1"><img src="/images/creator-studio.jpg" alt="Inside the Aurelis studio" /></div>
+          <div class="ci ci-2"><img src="/images/editorial-instagram-01.jpg" alt="Aurelis craft" /></div>
+        </div>
+        <div class="cn-col-text">
+          <span class="cn-eb">Our Craft</span>
+          <h3>Considered down to the last detail</h3>
+          <p>From the way a product is tested to the way it arrives at your door, nothing is left to chance. Every device is verified, every box is packed with care, every order treated like our only one.</p>
+          <p>It's slower. It's more demanding. But it's the only way we know how to build something worth keeping.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cn-history">
+    <div class="container">
+      <div class="hist-wrap">
+        <div class="hist-aside">
+          <span class="cn-eb">Our History</span>
+          <h2 class="hist-heading">Our journey<br />through the years</h2>
+          <ul class="hist-timeline">
+            {history.map((h, i) => <li class={`hist-tl${i === 0 ? ' active' : ''}`}>{h.year}</li>)}
+          </ul>
+        </div>
+        <div class="hist-steps">
+          {history.map((h, i) => (
+            <article class={`hist-step${i === 0 ? ' active' : ''}`}>
+              <div class="hist-step-year">{h.year}</div>
+              <h3 class="hist-step-title">{h.title}</h3>
+              <p class="hist-step-text">{h.text}</p>
+              <div class="hist-step-img"><img src={h.img} alt={`${h.title} — ${h.year}`} loading="lazy" /></div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cn-quote">
+    <div class="container">
+      <p class="q">Luxury isn't about owning more. It's about owning <span>better</span> — fewer things, chosen well, that last a lifetime.</p>
+      <div class="a"><b>Elias Mørk</b> &nbsp;·&nbsp; Founder, Aurelis</div>
+    </div>
+  </section>
+
+  <section class="cn-team">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-eyebrow" style="justify-content:center;"><span class="section-eyebrow-line"></span><span class="section-eyebrow-text">The People</span><span class="section-eyebrow-line"></span></div>
+        <h2 class="section-title">The team behind Aurelis</h2>
+      </div>
+      <div class="cn-team-grid">
+        {team.map(([img, name, role]) => (
+          <div class="cn-tm">
+            <div class="cn-tm-photo"><img src={`/images/${img}`} alt={name} loading="lazy" /></div>
+            <div class="cn-tm-plate">
+              <div class="cn-tm-info"><div class="nm">{name}</div><div class="r">{role}</div></div>
+              <a href="#" class="cn-tm-link" aria-label={`${name} on LinkedIn`}>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d={LINKEDIN} /></svg>
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Faq />
+  <Trust />
+  <Newsletter />
+</BaseLayout>
+
+<script>
+  // Animated stat counters.
+  const animate = (el: HTMLElement) => {
+    const target = Number(el.dataset.count || '0');
+    const dec = Number(el.dataset.dec || '0');
+    const suffix = el.dataset.suffix || '';
+    const start = performance.now();
+    const dur = 1400;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (target * eased).toFixed(dec) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = target.toFixed(dec) + suffix;
+    };
+    requestAnimationFrame(tick);
+  };
+  const stats = document.querySelectorAll<HTMLElement>('.stat-num');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { animate(e.target as HTMLElement); io.unobserve(e.target); } });
+  }, { threshold: 0.4 });
+  stats.forEach((s) => io.observe(s));
+
+  // Core-values modal.
+  const modal = document.getElementById('cv-modal');
+  const titleEl = modal?.querySelector('.cv-modal-title');
+  const bodyEl = modal?.querySelector('.cv-modal-body');
+  document.querySelectorAll('[data-cv]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.cv-card');
+      const title = card?.querySelector('.cv-card-title')?.innerHTML.replace(/<br>/g, ' ') || '';
+      const body = card?.querySelector('.cv-article-data')?.innerHTML || '';
+      if (titleEl) titleEl.textContent = title;
+      if (bodyEl) bodyEl.innerHTML = body;
+      modal?.classList.add('open');
+    });
+  });
+  modal?.querySelectorAll('[data-cv-close]').forEach((el) => el.addEventListener('click', () => modal.classList.remove('open')));
+
+  // History: activate the step + timeline year as each scrolls into view.
+  const steps = Array.from(document.querySelectorAll('.hist-step'));
+  const years = Array.from(document.querySelectorAll('.hist-tl'));
+  if (steps.length) {
+    const hio = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const idx = steps.indexOf(e.target);
+        steps.forEach((s, i) => s.classList.toggle('active', i === idx));
+        years.forEach((y, i) => y.classList.toggle('active', i === idx));
+      });
+    }, { rootMargin: '-40% 0px -40% 0px' });
+    steps.forEach((s) => hio.observe(s));
+  }
+</script>

@@ -1,0 +1,17 @@
+---
+// A grid of product cards. `class` lets the caller pick the layout
+// container (e.g. `related-grid` on the PDP, `shop-grid` on the PLP).
+import type { ProductCard as ProductCardType } from '~/lib/shopify/types';
+import ProductCard from './ProductCard.astro';
+
+interface Props {
+  products: ProductCardType[];
+  class?: string;
+}
+
+const { products, class: className = 'related-grid' } = Astro.props;
+---
+
+<div class={className}>
+  {products.map((product) => <ProductCard product={product} />)}
+</div>

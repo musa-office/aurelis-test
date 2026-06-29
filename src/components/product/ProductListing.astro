@@ -1,0 +1,177 @@
+---
+// Shop listing shell — toolbar (count + sort), active-filter chips,
+// optional faceted sidebar, product grid (or empty state), and
+// pagination. Reused by /products and /collections/[handle].
+import type { CollectionFilter, ProductCard, SortOption } from '~/lib/shopify/types';
+import ProductGrid from './ProductGrid.astro';
+import SortSelect from './SortSelect.astro';
+import Pagination from './Pagination.astro';
+import FilterSidebar from './FilterSidebar.astro';
+
+interface Props {
+  products: ProductCard[];
+  sortOptions: SortOption[];
+  sortValue: string;
+  url: URL;
+  basePath: string;
+  prevUrl: string | null;
+  nextUrl: string | null;
+  filters?: CollectionFilter[];
+  selectedFilters?: string[];
+  emptyTitle?: string;
+  emptyBody?: string;
+}
+
+const {
+  products,
+  sortOptions,
+  sortValue,
+  url,
+  basePath,
+  prevUrl,
+  nextUrl,
+  filters = [],
+  selectedFilters = [],
+  emptyTitle = 'No products match these filters.',
+  emptyBody = 'Try removing a filter or two — or browse the full collection.',
+} = Astro.props;
+
+const hasFilters = filters.length > 0;
+const shown = products.length;
+
+// Build active-filter chips: match each selected input back to a label.
+const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
+const chips = selectedFilters
+  .map((input) => {
+    // Price range filters have no facet-value label — derive one.
+    try {
+      const parsed = JSON.parse(input);
+      if (parsed?.price) {
+        const { min, max } = parsed.price;
+        let label = 'Price';
+        if (min != null && max != null) label = `${money(min)} – ${money(max)}`;
+        else if (min != null) label = `From ${money(min)}`;
+        else if (max != null) label = `Up to ${money(max)}`;
+        return { input, label };
+      }
+    } catch {}
+    for (const f of filters) {
+      const v = f.values.find((val) => val.input === input);
+      if (v) return { input, label: v.label };
+    }
+    return null;
+  })
+  .filter((c): c is { input: string; label: string } => c !== null);
+
+function removeFilterUrl(target: string): string {
+  const params = new URLSearchParams(url.search);
+  const kept = params.getAll('filter').filter((f) => f !== target);
+  params.delete('filter');
+  kept.forEach((f) => params.append('filter', f));
+  params.delete('after');
+  params.delete('before');
+  const qs = params.toString();
+  return `${basePath}${qs ? `?${qs}` : ''}`;
+}
+---
+
+<div class="shop-toolbar">
+  <div class="container">
+    <div class="toolbar-row">
+      <div class="toolbar-l">
+        {hasFilters && (
+          <button class="filter-toggle is-active" type="button" data-filter-toggle aria-label="Toggle filters">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+              <line x1="10" y1="18" x2="14" y2="18" />
+            </svg>
+            <span>Filters</span>
+            {chips.length > 0 && <span class="filter-toggle-badge">{chips.length}</span>}
+          </button>
+        )}
+        <span class="result-count">Showing <strong>{shown}</strong> {shown === 1 ? 'product' : 'products'}</span>
+      </div>
+      <div class="toolbar-r">
+        <SortSelect options={sortOptions} value={sortValue} url={url} />
+      </div>
+    </div>
+
+    {chips.length > 0 && (
+      <div class="active-filters is-visible">
+        <span class="active-filters-label">Active filters:</span>
+        {chips.map((chip) => (
+          <a class="filter-chip" href={removeFilterUrl(chip.input)}>
+            {chip.label}
+            <span class="filter-chip-x">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </span>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
+<section class="shop-main">
+  <div class="container">
+    {hasFilters ? (
+      <div class="shop-layout" data-shop-layout>
+        <FilterSidebar filters={filters} selected={selectedFilters} basePath={basePath} sortValue={sortValue} />
+        <div>
+          {shown > 0 ? (
+            <ProductGrid products={products} class="product-grid" />
+          ) : (
+            <div class="shop-empty" style="display:flex;">
+              <div class="shop-empty-icon">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </div>
+              <h3>{emptyTitle}</h3>
+              <p>{emptyBody}</p>
+              <a class="shop-empty-btn" href={basePath}>Clear Filters</a>
+            </div>
+          )}
+          <Pagination prevUrl={prevUrl} nextUrl={nextUrl} shown={shown} />
+        </div>
+      </div>
+    ) : (
+      <div>
+        {shown > 0 ? (
+          <ProductGrid products={products} class="product-grid" />
+        ) : (
+          <div class="shop-empty" style="display:flex;">
+            <div class="shop-empty-icon">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+            </div>
+            <h3>{emptyTitle}</h3>
+            <p>{emptyBody}</p>
+            <a class="shop-empty-btn" href={basePath}>Browse all</a>
+          </div>
+        )}
+        <Pagination prevUrl={prevUrl} nextUrl={nextUrl} shown={shown} />
+      </div>
+    )}
+  </div>
+</section>
+
+<script>
+  // Filter toggle. `filters-hidden` drives the desktop inline collapse;
+  // `filters-open` drives the mobile full-screen overlay (closed by default,
+  // so the product grid is visible on first load).
+  document.querySelectorAll('[data-filter-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('is-active');
+      const layout = document.querySelector('[data-shop-layout]');
+      layout?.classList.toggle('filters-hidden');
+      layout?.classList.toggle('filters-open');
+    });
+  });
+</script>

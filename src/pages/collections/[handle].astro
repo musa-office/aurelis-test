@@ -1,0 +1,118 @@
+---
+// ============================================================
+//  Collection PLP — products in a collection: sort + cursor
+//  pagination + faceted filters (Shopify collection filters).
+// ============================================================
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ProductListing from '~/components/product/ProductListing.astro';
+import { getCollection, COLLECTION_SORT_OPTIONS, resolveSort } from '~/lib/shopify';
+import { paginationUrls } from '~/lib/pagination';
+import type { CollectionWithProducts } from '~/lib/shopify/types';
+import '~/styles/product-card.css';
+import '~/styles/pages/shop.css';
+
+const { handle } = Astro.params;
+const url = Astro.url;
+const sortValue = url.searchParams.get('sort') ?? COLLECTION_SORT_OPTIONS[0].value;
+const sort = resolveSort(COLLECTION_SORT_OPTIONS, sortValue);
+const after = url.searchParams.get('after');
+const before = url.searchParams.get('before');
+
+// Each `filter` param is a canonical JSON ProductFilter input from Shopify.
+const selectedFilters = url.searchParams.getAll('filter');
+const parsedFilters = selectedFilters
+  .map((f) => {
+    try {
+      return JSON.parse(f);
+    } catch {
+      return null;
+    }
+  })
+  .filter((f) => f !== null);
+
+let collection: CollectionWithProducts | null = null;
+let prevUrl: string | null = null;
+let nextUrl: string | null = null;
+let loadFailed = false;
+
+try {
+  collection = await getCollection({
+    handle: handle!,
+    pageSize: 12,
+    after,
+    before,
+    sortKey: sort.sortKey,
+    reverse: sort.reverse,
+    filters: parsedFilters,
+  });
+} catch (err) {
+  loadFailed = true;
+  console.error('[collection] load failed:', (err as Error).message);
+}
+
+if (loadFailed) {
+  Astro.response.status = 503;
+} else if (!collection) {
+  Astro.response.status = 404;
+}
+
+if (collection) {
+  ({ prevUrl, nextUrl } = paginationUrls(url, collection.products.pageInfo));
+}
+
+const basePath = `/collections/${handle}`;
+const items = collection?.products.items ?? [];
+---
+
+{collection ? (
+  <BaseLayout
+    title={collection.seo?.title ?? collection.title}
+    description={collection.seo?.description ?? collection.description}
+  >
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <span class="crumb-sep">/</span>
+          <a href="/collections">Collections</a>
+          <span class="crumb-sep">/</span>
+          <span class="current">{collection.title}</span>
+        </nav>
+        <div class="hero-row">
+          <div class="hero-l">
+            <h1>{collection.title}</h1>
+            {collection.description && <p>{collection.description}</p>}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <ProductListing
+      products={items}
+      sortOptions={COLLECTION_SORT_OPTIONS}
+      sortValue={sort.value}
+      url={url}
+      basePath={basePath}
+      prevUrl={prevUrl}
+      nextUrl={nextUrl}
+      filters={collection.filters ?? []}
+      selectedFilters={selectedFilters}
+      emptyTitle="Nothing matches these filters"
+      emptyBody="Try removing a filter — or browse the full collection."
+    />
+  </BaseLayout>
+) : (
+  <BaseLayout title={loadFailed ? 'Something went wrong' : 'Collection not found'}>
+    <section class="container" style="padding:120px 0;text-align:center;">
+      <h1 style="font-family:var(--font-heading);font-size:34px;font-weight:700;margin-bottom:12px;">
+        {loadFailed ? 'Something went wrong' : 'Collection not found'}
+      </h1>
+      <p style="color:var(--taupe);margin-bottom:28px;">
+        {loadFailed
+          ? 'We could not load this collection right now. Please try again shortly.'
+          : "We couldn't find that collection."}
+      </p>
+      <a href="/collections" class="btn-dark">All collections</a>
+    </section>
+  </BaseLayout>
+)}
