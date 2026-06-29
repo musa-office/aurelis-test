@@ -34,3 +34,6 @@ pnpm-debug.log*
 
 # internal API reference (not shipped with the theme)
 SHOPIFY_STOREFRONT_API_2026-04_REFERENCE.md
+
+# preview screenshots (not tracked)
+screenshots/
