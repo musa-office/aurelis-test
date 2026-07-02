@@ -11,7 +11,7 @@
 //  The token endpoint REQUIRES an `Origin` header matching the
 //  app's registered JavaScript origin (see origin.ts).
 // ============================================================
-import { CLIENT_ID, ENDPOINTS, OAUTH_SCOPES } from './config';
+import { CLIENT_ID, ENDPOINTS, OAUTH_SCOPES, CUSTOMER_API_USER_AGENT } from './config';
 import { randomString, codeChallengeS256 } from './pkce';
 
 export interface AuthorizeInit {
@@ -72,6 +72,9 @@ export async function exchangeCodeForToken(opts: {
       // Ask explicitly for JSON — without this the endpoint can answer
       // errors with an HTML page, which then fails JSON.parse.
       Accept: 'application/json',
+      // A browser-like UA so Shopify's abuse protection doesn't 403 the
+      // header-less Cloudflare Worker request (see config.ts).
+      'User-Agent': CUSTOMER_API_USER_AGENT,
       // Required: must match the registered JavaScript origin.
       Origin: opts.origin,
     },

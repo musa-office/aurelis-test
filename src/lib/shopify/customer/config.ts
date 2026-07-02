@@ -26,6 +26,15 @@ export const isCustomerAuthConfigured = Boolean(CLIENT_ID && SHOP_ID);
 /** OAuth scopes — `customer-account-api:full` grants the GraphQL customer API. */
 export const OAUTH_SCOPES = 'openid email customer-account-api:full';
 
+/**
+ * Browser-like User-Agent for the server→`shopify.com` Customer Account
+ * calls (token exchange + GraphQL). Cloudflare Workers send no default UA,
+ * and Shopify's abuse protection answers UA-less requests with a 403
+ * "Access denied" HTML page. A normal UA passes that check.
+ */
+export const CUSTOMER_API_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
+
 const AUTH_BASE = SHOP_ID ? `https://shopify.com/authentication/${SHOP_ID}` : '';
 
 export const ENDPOINTS = {
