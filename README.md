@@ -6,6 +6,7 @@
 <a href="#features">Features</a> |
 <a href="#pages">Pages</a> |
 <a href="#getting-started">Getting Started</a> |
+<a href="#deployment--cloudflare-workers">Deployment</a> |
 <a href="#customization">Customization</a> |
 <a href="#project-structure">Project Structure</a> |
 <a href="#license">License</a>
@@ -18,7 +19,7 @@
 
 ## Features
 
-- Astro 6 in SSR mode (`output: "server"`) on the `@astrojs/node` standalone adapter.
+- Astro 6 in SSR mode (`output: "server"`) on the `@astrojs/cloudflare` adapter — deploys to Cloudflare Workers.
 - React 19 interactive islands (`@astrojs/react`) with framework-agnostic state via `nanostores`.
 - Headless Shopify Storefront API — **all Shopify traffic is server-side**; the private Storefront token never reaches the browser. The client only talks to same-origin `/api/*` routes.
 - Server-side cart persisted in an **httpOnly** cookie, with self-healing on stale/expired cart ids; checkout hands off to Shopify's hosted `checkoutUrl`.
@@ -150,13 +151,54 @@ yarn dev
 yarn build
 ```
 
-### Preview / Run
+### Preview / Run locally
 
 ```bash
 yarn preview
-# or run the standalone server build directly:
-HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
 ```
+
+`yarn preview` runs the built Worker locally through Wrangler (the `@astrojs/cloudflare` adapter). For local runtime secrets, copy `.dev.vars.example` to `.dev.vars` and fill it in — the adapter exposes those on `process.env`, mirroring production.
+
+---
+
+## Deployment — Cloudflare Workers
+
+This template targets **Cloudflare Workers** (via `@astrojs/cloudflare`). Connect the repo to a Worker (Workers & Pages → Import a repository) and set the **Build** configuration exactly as below.
+
+### Build & deploy commands
+
+| Setting | Value |
+| --- | --- |
+| **Build command** | `yarn run build` |
+| **Deploy command** | `npx wrangler deploy -c dist/server/wrangler.json` |
+
+> ⚠️ **The `-c dist/server/wrangler.json` part is required — do not use a bare `npx wrangler deploy`.**
+> The root `wrangler.jsonc` is a **build-time** config (its `main` points at the adapter entrypoint, before `dist/` exists). At **deploy time** the adapter generates `dist/server/wrangler.json` with the real built entry (`entry.mjs`), the static assets directory, and bindings — that is the file Wrangler must deploy. A single config can't serve both phases, so the deploy command must point at the generated one.
+
+### Environment variables & secrets
+
+The `.env` file is **not** deployed. In the Worker dashboard (Settings → **Variables and secrets**) add the same keys as [Environment](#environment):
+
+- `SHOPIFY_SHOP_DOMAIN`, `SHOPIFY_API_VERSION` — plain variables
+- `SHOPIFY_STOREFRONT_PRIVATE_TOKEN` — **secret**
+- Customer Account API keys (optional): `CUSTOMER_ACCOUNT_API_CLIENT_ID`, `SHOPIFY_SHOP_ID`, `CUSTOMER_ACCOUNT_API_VERSION`
+
+Cloudflare exposes these on `process.env` because `wrangler.jsonc` sets `nodejs_compat` + `nodejs_compat_populate_process_env` (already committed — nothing to configure).
+
+### First-time account setup
+
+- **Public URL:** register a `*.workers.dev` subdomain for the account (once), or add a custom domain under the Worker's **Domains** tab.
+- **Sessions KV:** the `SESSION` KV namespace is auto-provisioned on first deploy (Astro sessions are enabled by the adapter, though this template does not use them).
+
+### Customer Account API (login)
+
+If login is enabled, register the **deployed** URL in Shopify admin → Settings → Customer accounts → your API client:
+
+- Callback URI: `https://<your-worker-url>/account/authorize`
+- JavaScript origin: `https://<your-worker-url>`
+- Logout URI: `https://<your-worker-url>`
+
+> Server→`shopify.com` Customer Account calls send a browser `User-Agent` (see `src/lib/shopify/customer/config.ts`) — without it Shopify's abuse protection returns a `403 Access denied` HTML page from a Worker and login fails. Keep it.
 
 ---
 
@@ -219,7 +261,7 @@ tsconfig.json
 | Dependency | Version | Purpose |
 | --- | --- | --- |
 | Astro | ^6.4.7 | SSR site framework |
-| @astrojs/node | ^10 | Standalone Node server adapter |
+| @astrojs/cloudflare | ^13.7.0 | Cloudflare Workers adapter |
 | @astrojs/react | ^4 | React islands integration |
 | react / react-dom | ^19 | Interactive islands |
 | nanostores | ^0.11 | Framework-agnostic cross-island state |
