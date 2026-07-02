@@ -23,6 +23,20 @@ export function json(data: unknown, status = 200): Response {
   });
 }
 
+/**
+ * Read `clientAddress` without crashing. Astro's `clientAddress` is a getter
+ * that *throws* when the adapter can't resolve a client IP (the Cloudflare
+ * adapter under `astro dev`, prerendered contexts, etc.). The buyer IP is only
+ * an optional hint forwarded to Shopify, so degrade to `undefined` on throw.
+ */
+export function safeClientAddress(ctx: { clientAddress: string }): string | undefined {
+  try {
+    return ctx.clientAddress;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Fetch the current cart from the cookie; self-heals stale ids. */
 export async function readCart(cookies: AstroCookies, buyerIp?: string): Promise<CartResult> {
   const id = getCartId(cookies);
