@@ -69,13 +69,28 @@ export async function exchangeCodeForToken(opts: {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
+      // Ask explicitly for JSON — without this the endpoint can answer
+      // errors with an HTML page, which then fails JSON.parse.
+      Accept: 'application/json',
       // Required: must match the registered JavaScript origin.
       Origin: opts.origin,
     },
     body,
   });
 
-  const data = (await res.json()) as TokenResponse;
+  // Read as text first so a non-JSON (e.g. HTML error page) response is
+  // surfaced with its status and a snippet instead of a cryptic
+  // "Unexpected token '<'" JSON parse crash.
+  const raw = await res.text();
+  let data: TokenResponse;
+  try {
+    data = JSON.parse(raw) as TokenResponse;
+  } catch {
+    throw new Error(
+      `Token endpoint returned non-JSON (HTTP ${res.status}) from ${ENDPOINTS.token} ` +
+        `[origin=${opts.origin}]: ${raw.slice(0, 300)}`,
+    );
+  }
   if (!res.ok || !data.access_token) {
     throw new Error(data.error_description || data.error || `Token exchange failed (${res.status})`);
   }
