@@ -1,0 +1,23 @@
+{
+  // Cloudflare Workers deploy config for the Astro SSR storefront.
+  // Present so Cloudflare's `wrangler deploy` uses THIS config instead of
+  // auto-running `astro add cloudflare` (which pulled an Astro-7-only
+  // adapter and broke the build).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aurelis-test",
+  // Server entry provided by @astrojs/cloudflare's Vite plugin. The plugin
+  // resolves this module and bundles the built app into it at build time.
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2025-05-21",
+  // nodejs_compat            → node:async_hooks (AsyncLocalStorage in context.ts)
+  // ..._populate_process_env → exposes Worker vars/secrets on process.env,
+  //                            which the env() helpers in the Shopify layer read.
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  // Static assets (client JS, CSS, favicon…) served straight from ./dist;
+  // the adapter's .assetsignore keeps _worker.js/_routes.json out of this set.
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────
+#  Local Cloudflare dev vars (copy to .dev.vars).
+#  With the @astrojs/cloudflare adapter, `astro dev` reads these
+#  through platformProxy and exposes them on process.env — the same
+#  way Cloudflare populates secrets in production (nodejs_compat).
+#
+#  In PRODUCTION do NOT use this file. Set these as Worker secrets:
+#    wrangler secret put SHOPIFY_STOREFRONT_PRIVATE_TOKEN
+#  or add them under the Worker's Settings → Variables & Secrets in
+#  the Cloudflare dashboard. (Non-secret values like the domain and
+#  API versions can be plain "vars" instead.)
+# ─────────────────────────────────────────────────────────────
+
+# Storefront API (required)
+SHOPIFY_SHOP_DOMAIN=your-shop.myshopify.com
+SHOPIFY_STOREFRONT_PRIVATE_TOKEN=shpat_xxxxxxxxxxxxxxxxxxxxxxxx
+SHOPIFY_API_VERSION=2026-04
+
+# Customer Account API — login/account pages (optional; leave blank to disable)
+CUSTOMER_ACCOUNT_API_CLIENT_ID=
+SHOPIFY_SHOP_ID=
+CUSTOMER_ACCOUNT_API_VERSION=2025-01

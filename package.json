@@ -31,7 +31,7 @@
     "release:major": "npm version major -m \"chore: release %s\" && git push && git push --tags"
   },
   "dependencies": {
-    "@astrojs/node": "^10",
+    "@astrojs/cloudflare": "^13.7.0",
     "@astrojs/react": "^4",
     "@nanostores/react": "^0.8",
     "astro": "^6.4.7",
@@ -46,6 +46,7 @@
     "@types/node": "^26.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "wrangler": "^4.83.0"
   }
 }
